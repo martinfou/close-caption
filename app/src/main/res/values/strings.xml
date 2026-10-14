@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">LiveSub</string>
+    <string name="start_capture">Démarrer le sous-titrage</string>
+    <string name="stop_capture">Arrêter le sous-titrage</string>
+    <string name="source_language">Langue audio</string>
+    <string name="target_language">Langue sous-titres</string>
+    <string name="audio_source_internal">Son interne (système)</string>
+    <string name="audio_source_mic">Microphone (externe)</string>
+    <string name="overlay_permission_required">Autorisation de superposition requise</string>
+    <string name="notification_channel_name">Service de sous-titrage</string>
+    <string name="notification_channel_desc">Capture le flux audio et gère les sous-titres en direct</string>
+</resources>
