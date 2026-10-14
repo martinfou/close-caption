@@ -18,12 +18,12 @@ Deliver a fully functional, production-ready Android Native application in Kotli
 ---
 
 ### 🎙️ Epic 2: Real-Time Audio Capture & Processing Pipeline
-- **Status:** To Do
+- **Status:** Done
 - **Description:** Implement lock-free circular audio ring buffer, foreground capture service with MediaProjection, VAD, and mic fallback.
 - **Stories:**
-  - [ ] **Story 2.1:** Implement high-performance `AudioRingBuffer` for 16kHz PCM streaming.
-  - [ ] **Story 2.2:** Implement `AudioCaptureService` with `AudioPlaybackCaptureConfiguration` and `MediaProjection` token management.
-  - [ ] **Story 2.3:** Implement `VadFilter` and automatic DRM silence fallback to physical microphone.
+  - [x] **Story 2.1:** Implement high-performance `AudioRingBuffer` for 16kHz PCM streaming.
+  - [x] **Story 2.2:** Implement `AudioCaptureService` with `AudioPlaybackCaptureConfiguration` and `MediaProjection` token management.
+  - [x] **Story 2.3:** Implement `VadFilter` and automatic DRM silence fallback to physical microphone.
 
 ---
 
