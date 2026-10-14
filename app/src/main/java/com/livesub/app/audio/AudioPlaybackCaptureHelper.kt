@@ -38,6 +38,7 @@ object AudioPlaybackCaptureHelper {
             .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
             .addMatchingUsage(AudioAttributes.USAGE_GAME)
             .addMatchingUsage(AudioAttributes.USAGE_UNKNOWN)
+            .addMatchingUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
             .build()
 
         val audioFormat = AudioFormat.Builder()

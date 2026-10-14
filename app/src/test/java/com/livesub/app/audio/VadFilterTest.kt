@@ -37,7 +37,8 @@ class VadFilterTest {
     fun `continuous DRM silence during playback capture triggers fallback callback`() {
         val vadFilter = VadFilter(
             speechEnergyThreshold = 35.0,
-            silenceDurationToFallbackMs = 200L // Seuil court pour le test
+            silenceDurationToFallbackMs = 200L,
+            enableAutoFallback = true
         )
 
         val fallbackTriggered = AtomicBoolean(false)
@@ -78,7 +79,7 @@ class VadFilterTest {
 
     @Test
     fun `sound burst resets consecutive silence counter`() {
-        val vadFilter = VadFilter(silenceDurationToFallbackMs = 200L)
+        val vadFilter = VadFilter(silenceDurationToFallbackMs = 200L, enableAutoFallback = true)
         val fallbackTriggered = AtomicBoolean(false)
 
         val zeroChunk = AudioChunk(ShortArray(640) { 0 }, sampleRate = 16000)

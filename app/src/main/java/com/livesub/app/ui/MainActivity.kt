@@ -16,6 +16,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import com.livesub.app.audio.AudioCaptureService
 import com.livesub.app.domain.repository.SubtitleRepository
 import com.livesub.app.export.SrtExporter
@@ -23,15 +25,19 @@ import com.livesub.app.overlay.SubtitleOverlayService
 
 class MainActivity : ComponentActivity() {
 
+    private val hasOverlayState = androidx.compose.runtime.mutableStateOf(false)
+    private val hasAudioState = androidx.compose.runtime.mutableStateOf(false)
+
     private val overlayPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
-        // Rafraîchir l'état après le retour des réglages système
+        hasOverlayState.value = checkOverlayPermission()
     }
 
     private val requestAudioPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
+        hasAudioState.value = isGranted
         if (!isGranted) {
             Toast.makeText(
                 this,
@@ -58,10 +64,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        hasOverlayState.value = checkOverlayPermission()
+        hasAudioState.value = checkAudioPermission()
 
         setContent {
-            val hasOverlay = checkOverlayPermission()
-            val hasAudio = checkAudioPermission()
+            val hasOverlay by hasOverlayState
+            val hasAudio by hasAudioState
 
             MainScreen(
                 hasOverlayPermission = hasOverlay,
@@ -73,6 +81,12 @@ class MainActivity : ComponentActivity() {
                 onExportSrt = { handleExportSrt() }
             )
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        hasOverlayState.value = checkOverlayPermission()
+        hasAudioState.value = checkAudioPermission()
     }
 
     private fun checkOverlayPermission(): Boolean {

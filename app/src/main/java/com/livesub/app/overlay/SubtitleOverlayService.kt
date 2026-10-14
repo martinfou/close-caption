@@ -62,8 +62,8 @@ class SubtitleOverlayService : Service() {
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
-            x = (screenWidth - 800) / 2
-            y = screenHeight - 400
+            x = max(20, (screenWidth - 800) / 2)
+            y = 140
         }
 
         overlayView = ComposeView(this).apply {
@@ -74,12 +74,27 @@ class SubtitleOverlayService : Service() {
                 SubtitlePill(
                     onCloseClick = {
                         stopSelf()
+                    },
+                    onDrag = { dx, dy ->
+                        val displayMetrics = resources.displayMetrics
+                        val viewW = overlayView?.width ?: 300
+                        val viewH = overlayView?.height ?: 150
+                        val maxX = max(0, displayMetrics.widthPixels - viewW)
+                        val maxY = max(0, displayMetrics.heightPixels - viewH)
+
+                        val params = this@SubtitleOverlayService.layoutParams
+                        params.x = (params.x + dx.toInt()).coerceIn(0, maxX)
+                        params.y = (params.y + dy.toInt()).coerceIn(0, maxY)
+
+                        try {
+                            if (overlayView?.isAttachedToWindow == true) {
+                                windowManager?.updateViewLayout(overlayView, params)
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
                     }
                 )
-            }
-
-            setOnTouchListener { _, event ->
-                handleTouch(event)
             }
         }
 
@@ -89,48 +104,6 @@ class SubtitleOverlayService : Service() {
             e.printStackTrace()
             stopSelf()
         }
-    }
-
-    private fun handleTouch(event: MotionEvent): Boolean {
-        when (event.action) {
-            MotionEvent.ACTION_DOWN -> {
-                initialX = layoutParams.x
-                initialY = layoutParams.y
-                initialTouchX = event.rawX
-                initialTouchY = event.rawY
-                isDragging = false
-                return false // Permet aux composants enfants de recevoir le clic si pas de déplacement
-            }
-
-            MotionEvent.ACTION_MOVE -> {
-                val dx = (event.rawX - initialTouchX).toInt()
-                val dy = (event.rawY - initialTouchY).toInt()
-
-                if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
-                    isDragging = true
-                    val displayMetrics = resources.displayMetrics
-                    val maxX = displayMetrics.widthPixels - (overlayView?.width ?: 200)
-                    val maxY = displayMetrics.heightPixels - (overlayView?.height ?: 100)
-
-                    layoutParams.x = max(0, min(initialX + dx, maxX))
-                    layoutParams.y = max(60, min(initialY + dy, maxY))
-
-                    try {
-                        windowManager?.updateViewLayout(overlayView, layoutParams)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                    return true
-                }
-            }
-
-            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                val wasDragging = isDragging
-                isDragging = false
-                return wasDragging
-            }
-        }
-        return false
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

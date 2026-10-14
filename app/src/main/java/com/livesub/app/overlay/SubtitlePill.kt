@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -63,6 +64,7 @@ import com.livesub.app.domain.repository.SubtitleRepository
 @Composable
 fun SubtitlePill(
     onCloseClick: () -> Unit = {},
+    onDrag: (dx: Float, dy: Float) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier
 ) {
     val uiState by SubtitleRepository.uiState.collectAsState()
@@ -104,9 +106,16 @@ fun SubtitlePill(
                     .padding(horizontal = 14.dp, vertical = 10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Barre supérieure : poignée de glissement & statut du flux
+                // Barre supérieure : poignée de glissement interactive
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .pointerInput(Unit) {
+                            detectDragGestures { change, dragAmount ->
+                                change.consume()
+                                onDrag(dragAmount.x, dragAmount.y)
+                            }
+                        },
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
@@ -126,7 +135,7 @@ fun SubtitlePill(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = if (uiState.isMicFallback) "MIC SECOURS" else "AUDIO SYSTÈME",
+                            text = if (uiState.isMicFallback) "MIC" else "AUDIO INTERNE",
                             color = accentColor,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
@@ -134,13 +143,13 @@ fun SubtitlePill(
                         )
                     }
 
-                    // Poignée centrale
+                    // Poignée centrale de déplacement
                     Box(
                         modifier = Modifier
-                            .width(36.dp)
-                            .height(4.dp)
+                            .width(52.dp)
+                            .height(6.dp)
                             .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.35f))
+                            .background(Color.White.copy(alpha = 0.5f))
                     )
 
                     // Actions rapides (Paramètres & Réduction)
