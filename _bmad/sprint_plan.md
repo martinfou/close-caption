@@ -8,12 +8,12 @@ Deliver a fully functional, production-ready Android Native application in Kotli
 ## Epics & Stories
 
 ### 🚀 Epic 1: Android Project Scaffolding & Core Architecture
-- **Status:** In Progress
+- **Status:** Done
 - **Description:** Initialize Gradle build scripts, AndroidManifest with foreground service permissions, and domain models.
 - **Stories:**
-  - [ ] **Story 1.1:** Configure Gradle build scripts (`settings.gradle.kts`, `build.gradle.kts`, `app/build.gradle.kts`) with Jetpack Compose, Coroutines, ML Kit, and test dependencies.
-  - [ ] **Story 1.2:** Configure `AndroidManifest.xml` with `SYSTEM_ALERT_WINDOW`, `FOREGROUND_SERVICE`, `RECORD_AUDIO`, `MEDIA_PROJECTION`, and application entry points.
-  - [ ] **Story 1.3:** Implement core domain models (`AudioChunk`, `SubtitleItem`, `SubtitleUiState`, `LanguagePair`).
+  - [x] **Story 1.1:** Configure Gradle build scripts (`settings.gradle.kts`, `build.gradle.kts`, `app/build.gradle.kts`) with Jetpack Compose, Coroutines, ML Kit, and test dependencies.
+  - [x] **Story 1.2:** Configure `AndroidManifest.xml` with `SYSTEM_ALERT_WINDOW`, `FOREGROUND_SERVICE`, `RECORD_AUDIO`, `MEDIA_PROJECTION`, and application entry points.
+  - [x] **Story 1.3:** Implement core domain models (`AudioChunk`, `SubtitleItem`, `SubtitleUiState`, `LanguagePair`).
 
 ---
 
