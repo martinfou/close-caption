@@ -25,12 +25,10 @@ class StreamingAsrProcessor(
     private var silenceCheckJob: Job? = null
     private var isCurrentlySpeaking: Boolean = false
 
-    init {
-        scope.launch {
-            asrEngine.resultFlow.collect { result ->
-                if (result.isFinal) {
-                    _finalizedPhrases.emit(result)
-                }
+    private var asrCollectorJob: Job? = scope.launch {
+        asrEngine.resultFlow.collect { result ->
+            if (result.isFinal) {
+                _finalizedPhrases.emit(result)
             }
         }
     }
@@ -75,6 +73,8 @@ class StreamingAsrProcessor(
 
     fun release() {
         reset()
+        asrCollectorJob?.cancel()
+        asrCollectorJob = null
         asrEngine.release()
     }
 }

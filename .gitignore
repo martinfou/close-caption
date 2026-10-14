@@ -12,3 +12,4 @@
 *.aab
 _bmad-output/
 *.user.toml
+.vscode/

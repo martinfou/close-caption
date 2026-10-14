@@ -29,4 +29,18 @@ data class Language(
 data class LanguagePair(
     val source: Language = Language.DEFAULT_SOURCE,
     val target: Language = Language.DEFAULT_TARGET
-)
+) {
+    val sourceCode: String get() = source.code
+    val targetCode: String get() = target.code
+
+    companion object {
+        fun fromCodes(sourceCode: String, targetCode: String): LanguagePair {
+            val src = Language.SUPPORTED_LANGUAGES.find { it.code == sourceCode }
+                ?: Language(sourceCode, sourceCode, "🌐")
+            val tgt = Language.SUPPORTED_LANGUAGES.find { it.code == targetCode }
+                ?: Language(targetCode, targetCode, "🌐")
+            return LanguagePair(source = src, target = tgt)
+        }
+    }
+}
+

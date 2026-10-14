@@ -387,7 +387,7 @@ fun LanguageSelectionCard(
                 LanguagePickerBox(
                     label = "Langue audio",
                     currentCode = currentPair.sourceCode,
-                    onCodeSelected = { onPairChanged(currentPair.copy(sourceCode = it)) },
+                    onCodeSelected = { onPairChanged(LanguagePair.fromCodes(it, currentPair.targetCode)) },
                     modifier = Modifier.weight(1f)
                 )
 
@@ -395,8 +395,8 @@ fun LanguageSelectionCard(
                     onClick = {
                         onPairChanged(
                             LanguagePair(
-                                sourceCode = currentPair.targetCode,
-                                targetCode = currentPair.sourceCode
+                                source = currentPair.target,
+                                target = currentPair.source
                             )
                         )
                     },
@@ -413,7 +413,7 @@ fun LanguageSelectionCard(
                 LanguagePickerBox(
                     label = "Langue sous-titres",
                     currentCode = currentPair.targetCode,
-                    onCodeSelected = { onPairChanged(currentPair.copy(targetCode = it)) },
+                    onCodeSelected = { onPairChanged(LanguagePair.fromCodes(currentPair.sourceCode, it)) },
                     modifier = Modifier.weight(1f)
                 )
             }
