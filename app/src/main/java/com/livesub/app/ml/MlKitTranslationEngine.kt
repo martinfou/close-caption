@@ -2,19 +2,22 @@ package com.livesub.app.ml
 
 import android.util.LruCache
 import com.google.android.gms.tasks.Tasks
+import com.google.mlkit.common.model.DownloadConditions
 import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.Translator
 import com.google.mlkit.nl.translate.TranslatorOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.Collections
 
 /**
  * Implémentation de la traduction locale via Google ML Kit On-Device Translation.
- * Intègre un cache LRU de 200 entrées pour les expressions récurrentes.
+ * Télécharge automatiquement le modèle hors-ligne au besoin et intègre un cache LRU de 200 entrées.
  */
 class MlKitTranslationEngine : TranslationEngine {
 
     private val activeTranslators = mutableMapOf<String, Translator>()
+    private val downloadedModels = Collections.synchronizedSet(mutableSetOf<String>())
     private val translationCache = LruCache<String, String>(200)
 
     override suspend fun translate(
@@ -35,7 +38,15 @@ class MlKitTranslationEngine : TranslationEngine {
         }
 
         try {
+            val modelKey = "$sourceLangCode-$targetLangCode"
             val translator = getOrCreateTranslator(sourceLangCode, targetLangCode)
+
+            if (!downloadedModels.contains(modelKey)) {
+                val conditions = DownloadConditions.Builder().build()
+                Tasks.await(translator.downloadModelIfNeeded(conditions))
+                downloadedModels.add(modelKey)
+            }
+
             val translated = Tasks.await(translator.translate(trimmed))
             translationCache.put(cacheKey, translated)
             Result.success(translated)
@@ -60,6 +71,7 @@ class MlKitTranslationEngine : TranslationEngine {
             translator.close()
         }
         activeTranslators.clear()
+        downloadedModels.clear()
         translationCache.evictAll()
     }
 }
