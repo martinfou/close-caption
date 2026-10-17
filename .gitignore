@@ -13,3 +13,6 @@
 _bmad-output/
 *.user.toml
 .vscode/
+*.jks
+*.keystore
+*service-account*.json
