@@ -1,0 +1,47 @@
+name: LiveSub
+options:
+  bundleIdPrefix: com.livesub
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+    TARGETED_DEVICE_FAMILY: "1,2"
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+
+targets:
+  LiveSub:
+    type: application
+    platform: iOS
+    sources:
+      - path: LiveSub
+      - path: Shared
+    info:
+      path: LiveSub/Resources/Info.plist
+    entitlements:
+      path: LiveSub/LiveSub.entitlements
+    dependencies:
+      - target: LiveSubBroadcast
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.livesub.app
+        INFOPLIST_FILE: LiveSub/Resources/Info.plist
+
+  LiveSubBroadcast:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: LiveSubBroadcast
+      - path: Shared
+    info:
+      path: LiveSubBroadcast/Info.plist
+    entitlements:
+      path: LiveSubBroadcast/LiveSubBroadcast.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.livesub.app.LiveSubBroadcast
+        INFOPLIST_FILE: LiveSubBroadcast/Info.plist

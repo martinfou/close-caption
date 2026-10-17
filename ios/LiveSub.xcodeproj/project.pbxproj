@@ -1,0 +1,515 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		104AD2262A5C7DEA4F0A6F90 /* BroadcastPickerRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 965829555AA8EF8B1B7A4A19 /* BroadcastPickerRepresentable.swift */; };
+		3207FC50A4C7B1C78C62619B /* SampleHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = C06733A66FF45BAEEA893EF6 /* SampleHandler.swift */; };
+		3E893EC6C4F6F95642EE14E1 /* PiPManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED79DB18EDE41BB4DE10A310 /* PiPManager.swift */; };
+		40A0442EE893C22FE4CF1792 /* LiveSubApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A18E0B3C3ED1B72466990EF /* LiveSubApp.swift */; };
+		5B359B93DC718C4C1DFEF720 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BB513A76714E2A95C74C7A /* ContentView.swift */; };
+		9211DB98E7556909D0548C42 /* AudioPCMUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5D02A915561638D2D947957 /* AudioPCMUtils.swift */; };
+		A76A3CD15223386BE8EB342D /* SpeechRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECEBD5BD0802978C7A483F8D /* SpeechRecognizer.swift */; };
+		B76C6A9993FFE705E1CCACAC /* AudioSocketClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02D07D091E790AFDAC76D06 /* AudioSocketClient.swift */; };
+		D9157DF1124CD79B8940FA7C /* SubtitleOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B87A4F651B5FEC98FD8B64 /* SubtitleOverlayView.swift */; };
+		DD377AF69516F1E2D6FBBE9A /* AudioSocketServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D47E430350011D78F592E259 /* AudioSocketServer.swift */; };
+		E01133A61589CABF880CB517 /* AudioSocketConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65E2ACB880A8D25B5009E3BA /* AudioSocketConstants.swift */; };
+		E8B3AA3F5E082865B2459440 /* AudioSocketConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65E2ACB880A8D25B5009E3BA /* AudioSocketConstants.swift */; };
+		EF72C4C3907C2BD8A27A7320 /* LiveSubBroadcast.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5E74247DB482B296842C87E0 /* LiveSubBroadcast.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		F811FC3F082ACF680BC0CF15 /* AudioPCMUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5D02A915561638D2D947957 /* AudioPCMUtils.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		71CB15F09934A39D6D011FEF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4F4E39761667407E5CB93188 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FD9B105B2DA0985DD28507DF;
+			remoteInfo = LiveSubBroadcast;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		A57805857D1CB0814979CF3D /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				EF72C4C3907C2BD8A27A7320 /* LiveSubBroadcast.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		44A6C8A9AB2FE37F8193E060 /* LiveSub.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = LiveSub.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5AE8DB21BD83269446A887B3 /* LiveSub.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LiveSub.entitlements; sourceTree = "<group>"; };
+		5E74247DB482B296842C87E0 /* LiveSubBroadcast.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = LiveSubBroadcast.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		65E2ACB880A8D25B5009E3BA /* AudioSocketConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSocketConstants.swift; sourceTree = "<group>"; };
+		73CE21AE43AB6E7F30893E0B /* LiveSubBroadcast.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LiveSubBroadcast.entitlements; sourceTree = "<group>"; };
+		912735E3CBF2EBB153101AC7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		965829555AA8EF8B1B7A4A19 /* BroadcastPickerRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastPickerRepresentable.swift; sourceTree = "<group>"; };
+		9A18E0B3C3ED1B72466990EF /* LiveSubApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSubApp.swift; sourceTree = "<group>"; };
+		C06733A66FF45BAEEA893EF6 /* SampleHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleHandler.swift; sourceTree = "<group>"; };
+		D02D07D091E790AFDAC76D06 /* AudioSocketClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSocketClient.swift; sourceTree = "<group>"; };
+		D0B87A4F651B5FEC98FD8B64 /* SubtitleOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitleOverlayView.swift; sourceTree = "<group>"; };
+		D47E430350011D78F592E259 /* AudioSocketServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSocketServer.swift; sourceTree = "<group>"; };
+		E79671CE6811C272F21CFB4D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		ECEBD5BD0802978C7A483F8D /* SpeechRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechRecognizer.swift; sourceTree = "<group>"; };
+		ED79DB18EDE41BB4DE10A310 /* PiPManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PiPManager.swift; sourceTree = "<group>"; };
+		F3BB513A76714E2A95C74C7A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		F5D02A915561638D2D947957 /* AudioPCMUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPCMUtils.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		039D37824279464A56AC2918 /* LiveSub */ = {
+			isa = PBXGroup;
+			children = (
+				5AE8DB21BD83269446A887B3 /* LiveSub.entitlements */,
+				4D8A981C86792E15238E5B99 /* App */,
+				235523D6639A4E3124228A9E /* IPC */,
+				041F75DCDEAF8211369F630A /* PiP */,
+				75F4FCDB58B9A7BEABE09BD5 /* Resources */,
+				3F0E3133A2FA800914ED82E6 /* Speech */,
+				3ABB88E2CEBD4CB6A5719A6C /* Views */,
+			);
+			path = LiveSub;
+			sourceTree = "<group>";
+		};
+		041F75DCDEAF8211369F630A /* PiP */ = {
+			isa = PBXGroup;
+			children = (
+				ED79DB18EDE41BB4DE10A310 /* PiPManager.swift */,
+				D0B87A4F651B5FEC98FD8B64 /* SubtitleOverlayView.swift */,
+			);
+			path = PiP;
+			sourceTree = "<group>";
+		};
+		235523D6639A4E3124228A9E /* IPC */ = {
+			isa = PBXGroup;
+			children = (
+				D47E430350011D78F592E259 /* AudioSocketServer.swift */,
+			);
+			path = IPC;
+			sourceTree = "<group>";
+		};
+		324C4AAE238AA93218B97451 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				44A6C8A9AB2FE37F8193E060 /* LiveSub.app */,
+				5E74247DB482B296842C87E0 /* LiveSubBroadcast.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		3ABB88E2CEBD4CB6A5719A6C /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				965829555AA8EF8B1B7A4A19 /* BroadcastPickerRepresentable.swift */,
+				F3BB513A76714E2A95C74C7A /* ContentView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		3F0E3133A2FA800914ED82E6 /* Speech */ = {
+			isa = PBXGroup;
+			children = (
+				ECEBD5BD0802978C7A483F8D /* SpeechRecognizer.swift */,
+			);
+			path = Speech;
+			sourceTree = "<group>";
+		};
+		4D8A981C86792E15238E5B99 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				9A18E0B3C3ED1B72466990EF /* LiveSubApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		75F4FCDB58B9A7BEABE09BD5 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				E79671CE6811C272F21CFB4D /* Info.plist */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		7D3B93C78CF63CA3F8310B18 /* LiveSubBroadcast */ = {
+			isa = PBXGroup;
+			children = (
+				D02D07D091E790AFDAC76D06 /* AudioSocketClient.swift */,
+				912735E3CBF2EBB153101AC7 /* Info.plist */,
+				73CE21AE43AB6E7F30893E0B /* LiveSubBroadcast.entitlements */,
+				C06733A66FF45BAEEA893EF6 /* SampleHandler.swift */,
+			);
+			path = LiveSubBroadcast;
+			sourceTree = "<group>";
+		};
+		B44C57AF85141F3141F9BB7E = {
+			isa = PBXGroup;
+			children = (
+				039D37824279464A56AC2918 /* LiveSub */,
+				7D3B93C78CF63CA3F8310B18 /* LiveSubBroadcast */,
+				D339D1FA716739C15DD18AE4 /* Shared */,
+				324C4AAE238AA93218B97451 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		D339D1FA716739C15DD18AE4 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				F5D02A915561638D2D947957 /* AudioPCMUtils.swift */,
+				65E2ACB880A8D25B5009E3BA /* AudioSocketConstants.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		BF0050610A06FB2306317BC5 /* LiveSub */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 61E09ACC15E78098C789B7D5 /* Build configuration list for PBXNativeTarget "LiveSub" */;
+			buildPhases = (
+				715032B32B2C6DF00EF4337E /* Sources */,
+				A57805857D1CB0814979CF3D /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BBB366E09DB6AEB1D175F81D /* PBXTargetDependency */,
+			);
+			name = LiveSub;
+			packageProductDependencies = (
+			);
+			productName = LiveSub;
+			productReference = 44A6C8A9AB2FE37F8193E060 /* LiveSub.app */;
+			productType = "com.apple.product-type.application";
+		};
+		FD9B105B2DA0985DD28507DF /* LiveSubBroadcast */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 906863C4EC2199925649DFF3 /* Build configuration list for PBXNativeTarget "LiveSubBroadcast" */;
+			buildPhases = (
+				588B2496A4F0F8E76DC13D79 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LiveSubBroadcast;
+			packageProductDependencies = (
+			);
+			productName = LiveSubBroadcast;
+			productReference = 5E74247DB482B296842C87E0 /* LiveSubBroadcast.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		4F4E39761667407E5CB93188 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					BF0050610A06FB2306317BC5 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+					FD9B105B2DA0985DD28507DF = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 4D6E21C48774BEB062414A23 /* Build configuration list for PBXProject "LiveSub" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = B44C57AF85141F3141F9BB7E;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 324C4AAE238AA93218B97451 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				BF0050610A06FB2306317BC5 /* LiveSub */,
+				FD9B105B2DA0985DD28507DF /* LiveSubBroadcast */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		588B2496A4F0F8E76DC13D79 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F811FC3F082ACF680BC0CF15 /* AudioPCMUtils.swift in Sources */,
+				B76C6A9993FFE705E1CCACAC /* AudioSocketClient.swift in Sources */,
+				E01133A61589CABF880CB517 /* AudioSocketConstants.swift in Sources */,
+				3207FC50A4C7B1C78C62619B /* SampleHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		715032B32B2C6DF00EF4337E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9211DB98E7556909D0548C42 /* AudioPCMUtils.swift in Sources */,
+				E8B3AA3F5E082865B2459440 /* AudioSocketConstants.swift in Sources */,
+				DD377AF69516F1E2D6FBBE9A /* AudioSocketServer.swift in Sources */,
+				104AD2262A5C7DEA4F0A6F90 /* BroadcastPickerRepresentable.swift in Sources */,
+				5B359B93DC718C4C1DFEF720 /* ContentView.swift in Sources */,
+				40A0442EE893C22FE4CF1792 /* LiveSubApp.swift in Sources */,
+				3E893EC6C4F6F95642EE14E1 /* PiPManager.swift in Sources */,
+				A76A3CD15223386BE8EB342D /* SpeechRecognizer.swift in Sources */,
+				D9157DF1124CD79B8940FA7C /* SubtitleOverlayView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		BBB366E09DB6AEB1D175F81D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FD9B105B2DA0985DD28507DF /* LiveSubBroadcast */;
+			targetProxy = 71CB15F09934A39D6D011FEF /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		4370734419E85E694DE2C162 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		4AAA6FC42182AC889D42BA50 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		849B49BA5A1167A2D170D964 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = LiveSub/LiveSub.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = LiveSub/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.livesub.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		9F73FF570CF7BDE066ADE7DE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = LiveSubBroadcast/LiveSubBroadcast.entitlements;
+				INFOPLIST_FILE = LiveSubBroadcast/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.livesub.app.LiveSubBroadcast;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		D8EDD794B4D76ECEA37C9D65 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = LiveSub/LiveSub.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = LiveSub/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.livesub.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		E94DD440227E6539B4630C53 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = LiveSubBroadcast/LiveSubBroadcast.entitlements;
+				INFOPLIST_FILE = LiveSubBroadcast/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.livesub.app.LiveSubBroadcast;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4D6E21C48774BEB062414A23 /* Build configuration list for PBXProject "LiveSub" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4370734419E85E694DE2C162 /* Debug */,
+				4AAA6FC42182AC889D42BA50 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		61E09ACC15E78098C789B7D5 /* Build configuration list for PBXNativeTarget "LiveSub" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D8EDD794B4D76ECEA37C9D65 /* Debug */,
+				849B49BA5A1167A2D170D964 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		906863C4EC2199925649DFF3 /* Build configuration list for PBXNativeTarget "LiveSubBroadcast" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9F73FF570CF7BDE066ADE7DE /* Debug */,
+				E94DD440227E6539B4630C53 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 4F4E39761667407E5CB93188 /* Project object */;
+}

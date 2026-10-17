@@ -16,3 +16,10 @@ _bmad-output/
 *.jks
 *.keystore
 *service-account*.json
+
+# Xcode / iOS
+build/
+DerivedData/
+*.xcuserstate
+*.xcuserdatad
+xcuserdata/
