@@ -14,6 +14,8 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import androidx.compose.ui.platform.ComposeView
+import com.livesub.app.audio.AudioCaptureService
+import com.livesub.app.domain.repository.SubtitleRepository
 import kotlin.math.max
 import kotlin.math.min
 
@@ -73,6 +75,12 @@ class SubtitleOverlayService : Service() {
             setContent {
                 SubtitlePill(
                     onCloseClick = {
+                        removeOverlay()
+                        val stopIntent = Intent(this@SubtitleOverlayService, AudioCaptureService::class.java).apply {
+                            action = AudioCaptureService.ACTION_STOP
+                        }
+                        startService(stopIntent)
+                        SubtitleRepository.stopPipeline()
                         stopSelf()
                     },
                     onDrag = { dx, dy ->
@@ -117,10 +125,10 @@ class SubtitleOverlayService : Service() {
     private fun clampOverlayToScreen() {
         val metrics = resources.displayMetrics
         val maxX = max(0, metrics.widthPixels - (overlayView?.width ?: 200))
-        val maxY = max(60, metrics.heightPixels - (overlayView?.height ?: 100))
+        val maxY = max(0, metrics.heightPixels - (overlayView?.height ?: 100))
 
         layoutParams.x = layoutParams.x.coerceIn(0, maxX)
-        layoutParams.y = layoutParams.y.coerceIn(60, maxY)
+        layoutParams.y = layoutParams.y.coerceIn(0, maxY)
 
         try {
             if (overlayView?.isAttachedToWindow == true) {
@@ -133,12 +141,15 @@ class SubtitleOverlayService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
-            ACTION_STOP_OVERLAY -> stopSelf()
+            ACTION_STOP_OVERLAY -> {
+                removeOverlay()
+                stopSelf()
+            }
         }
         return START_NOT_STICKY
     }
 
-    override fun onDestroy() {
+    private fun removeOverlay() {
         try {
             overlayView?.let {
                 lifecycleOwner.onDestroy()
@@ -151,6 +162,10 @@ class SubtitleOverlayService : Service() {
         } finally {
             overlayView = null
         }
+    }
+
+    override fun onDestroy() {
+        removeOverlay()
         super.onDestroy()
     }
 

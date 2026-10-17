@@ -152,7 +152,7 @@ fun SubtitlePill(
                             .background(Color.White.copy(alpha = 0.5f))
                     )
 
-                    // Actions rapides (Paramètres & Réduction)
+                    // Actions rapides (Paramètres, Réduire, Fermer X)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton(
                             onClick = { showSettings = !showSettings },
@@ -175,6 +175,21 @@ fun SubtitlePill(
                                 contentDescription = "Réduire",
                                 tint = Color.White.copy(alpha = 0.7f),
                                 modifier = Modifier.size(18.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(6.dp))
+                        IconButton(
+                            onClick = onCloseClick,
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFFF5252).copy(alpha = 0.25f))
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Fermer LiveSub",
+                                tint = Color(0xFFFF5252),
+                                modifier = Modifier.size(15.dp)
                             )
                         }
                     }
