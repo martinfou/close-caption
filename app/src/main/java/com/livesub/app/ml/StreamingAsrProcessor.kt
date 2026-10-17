@@ -35,9 +35,15 @@ class StreamingAsrProcessor(
 
     /**
      * Reçoit un chunk audio traité par le VAD.
+     *
+     * Tous les chunks (parole ET silence) sont transmis séquentiellement au moteur ASR :
+     * un moteur de streaming a besoin du signal continu (y compris les pauses) pour
+     * détecter les fins d'énoncé, et l'ordre des échantillons PCM doit être préservé.
      */
-    fun processChunk(chunk: AudioChunk) {
+    suspend fun processChunk(chunk: AudioChunk) {
         val now = System.currentTimeMillis()
+
+        asrEngine.feedAudio(chunk)
 
         if (chunk.isSpeech) {
             silenceCheckJob?.cancel()
@@ -47,10 +53,6 @@ class StreamingAsrProcessor(
                 speechStartMs = now
             }
             lastSpeechTimeMs = now
-
-            scope.launch {
-                asrEngine.feedAudio(chunk)
-            }
         } else if (isCurrentlySpeaking) {
             // Silence détecté après une prise de parole : armer un timer de clôture de phrase
             if (silenceCheckJob?.isActive != true) {

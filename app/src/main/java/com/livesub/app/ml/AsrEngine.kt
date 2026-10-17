@@ -38,4 +38,25 @@ interface AsrEngine {
      * Libère les ressources natives.
      */
     fun release()
+
+    /**
+     * Démarre la reconnaissance vocale continue.
+     */
+    fun start() {}
+
+    /**
+     * Stoppe la reconnaissance vocale.
+     */
+    fun stop() {}
+
+    /**
+     * Configure la langue source de transcription.
+     */
+    fun setLanguage(langCode: String) {}
+
+    /**
+     * Indique si le moteur doit transcrire l'audio injecté via [feedAudio] (capture interne)
+     * plutôt que d'écouter lui-même le microphone.
+     */
+    fun setExternalAudioEnabled(enabled: Boolean) {}
 }

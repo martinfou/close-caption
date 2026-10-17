@@ -14,6 +14,13 @@
     <!-- Notification Permission (Android 13+) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Visibilité du service de reconnaissance vocale (requis Android 11+ / targetSdk >= 30) -->
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+    </queries>
+
     <application
         android:name=".LiveSubApplication"
         android:allowBackup="true"

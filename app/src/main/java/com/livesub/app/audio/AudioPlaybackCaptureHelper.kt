@@ -34,11 +34,13 @@ object AudioPlaybackCaptureHelper {
         mediaProjection: MediaProjection,
         bufferSize: Int = calculateMinBufferSize()
     ): AudioRecord {
+        // Seuls MEDIA, GAME et UNKNOWN sont capturables par une app non système.
+        // USAGE_VOICE_COMMUNICATION exige CAPTURE_VOICE_COMMUNICATION_OUTPUT (privilégiée) et fait
+        // échouer build() avec « could not register audio policy ».
         val config = AudioPlaybackCaptureConfiguration.Builder(mediaProjection)
             .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
             .addMatchingUsage(AudioAttributes.USAGE_GAME)
             .addMatchingUsage(AudioAttributes.USAGE_UNKNOWN)
-            .addMatchingUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
             .build()
 
         val audioFormat = AudioFormat.Builder()

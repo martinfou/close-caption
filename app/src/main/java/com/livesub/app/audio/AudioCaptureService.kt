@@ -11,7 +11,10 @@ import android.media.AudioRecord
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
@@ -21,6 +24,7 @@ import com.livesub.app.domain.model.AudioChunk
 import com.livesub.app.domain.model.SubtitleUiState
 import com.livesub.app.ui.MainActivity
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -41,16 +45,27 @@ class AudioCaptureService : LifecycleService() {
     private val vadFilter = VadFilter()
     private var isUsingMicrophoneFallback = false
 
+    private val projectionCallback = object : MediaProjection.Callback() {
+        override fun onStop() {
+            super.onStop()
+            Log.w(TAG, "MediaProjection.onStop() reçu (isRecording=${isRecording.get()})")
+            if (isRecording.get()) {
+                startMicrophoneCapture("projection arrêtée")
+            }
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
+        val serviceType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION or ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+        } else {
+            0
+        }
         startForeground(
             LiveSubApplication.NOTIFICATION_ID,
             buildNotification("Initialisation de la capture audio..."),
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION
-            } else {
-                0
-            }
+            serviceType
         )
     }
 
@@ -61,6 +76,7 @@ class AudioCaptureService : LifecycleService() {
             ACTION_START -> {
                 val resultCode = intent.getIntExtra(EXTRA_RESULT_CODE, Activity.RESULT_CANCELED)
                 val resultData = intent.getParcelableExtra<Intent>(EXTRA_RESULT_DATA)
+                Log.i(TAG, "ACTION_START resultCode=$resultCode hasData=${resultData != null}")
 
                 if (resultCode == Activity.RESULT_OK && resultData != null) {
                     val projectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
@@ -69,7 +85,7 @@ class AudioCaptureService : LifecycleService() {
                     startAudioCapture(projection)
                 } else {
                     // Si pas de projection media, démarrage direct sur micro
-                    startMicrophoneCapture()
+                    startMicrophoneCapture("pas de jeton MediaProjection")
                 }
             }
             ACTION_STOP -> {
@@ -86,6 +102,13 @@ class AudioCaptureService : LifecycleService() {
         if (isRecording.getAndSet(true)) return
 
         try {
+            // Android 14+ exige impérativement d'enregistrer le callback avant d'utiliser la projection
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                projection.registerCallback(projectionCallback, Handler(Looper.getMainLooper()))
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                projection.registerCallback(projectionCallback, null)
+            }
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 audioRecord = AudioPlaybackCaptureHelper.createPlaybackCaptureRecord(projection)
             } else {
@@ -94,34 +117,27 @@ class AudioCaptureService : LifecycleService() {
             }
 
             audioRecord?.startRecording()
+            Log.i(TAG, "AudioRecord démarré (playback=${!isUsingMicrophoneFallback}, state=${audioRecord?.state}, recordingState=${audioRecord?.recordingState})")
             updateServiceState(isRunning = true, isMic = isUsingMicrophoneFallback)
             updateNotification(if (isUsingMicrophoneFallback) "Écoute microphone active" else "Capture audio interne active")
 
             startReadingLoop(isPlayback = !isUsingMicrophoneFallback)
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(TAG, "Échec de la capture audio interne", e)
             // En cas d'échec sur la capture interne, repli sur le micro
-            startMicrophoneCapture()
+            startMicrophoneCapture("exception: ${e.javaClass.simpleName}")
         }
     }
 
     @SuppressLint("MissingPermission")
-    private fun startMicrophoneCapture() {
+    private fun startMicrophoneCapture(reason: String) {
+        Log.w(TAG, "Bascule en mode microphone : $reason")
         stopCurrentRecord()
         isUsingMicrophoneFallback = true
         isRecording.set(true)
 
-        try {
-            audioRecord = AudioPlaybackCaptureHelper.createMicrophoneRecord()
-            audioRecord?.startRecording()
-            updateServiceState(isRunning = true, isMic = true)
-            updateNotification("Mode secours : Écoute via microphone physique")
-
-            startReadingLoop(isPlayback = false)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            stopAudioCapture()
-        }
+        updateServiceState(isRunning = true, isMic = true)
+        updateNotification("Mode secours : Écoute via microphone du téléphone")
     }
 
     private fun startReadingLoop(isPlayback: Boolean) {
@@ -131,30 +147,42 @@ class AudioCaptureService : LifecycleService() {
 
             val frameSize = 640 // 40ms @ 16kHz
             val readBuffer = ShortArray(frameSize)
+            var framesSinceLog = 0
+            var maxRms = 0.0
 
             while (isRecording.get() && audioRecord?.recordingState == AudioRecord.RECORDSTATE_RECORDING) {
                 val samplesRead = audioRecord?.read(readBuffer, 0, frameSize) ?: 0
+                if (samplesRead < 0) {
+                    Log.e(TAG, "AudioRecord.read() erreur=$samplesRead")
+                    Thread.sleep(40)
+                }
                 if (samplesRead > 0) {
                     val rawChunk = AudioChunk(readBuffer.copyOf(samplesRead), AudioPlaybackCaptureHelper.SAMPLE_RATE)
+                    maxRms = maxOf(maxRms, rawChunk.calculateRms())
+                    if (++framesSinceLog >= 125) { // ~5s
+                        Log.d(TAG, "Capture active : ${framesSinceLog} trames, RMS max=${"%.1f".format(maxRms)}")
+                        framesSinceLog = 0
+                        maxRms = 0.0
+                    }
                     val processedChunk = vadFilter.process(
                         chunk = rawChunk,
                         isPlaybackCaptureActive = isPlayback,
                         onSilenceFallback = {
                             lifecycleScope.launch(Dispatchers.Main) {
                                 // Déclenche la bascule automatique sur micro
-                                startMicrophoneCapture()
+                                startMicrophoneCapture("silence prolongé (DRM ?)")
                             }
                         }
                     )
 
                     ringBuffer.write(processedChunk.data)
 
-                    // Émission du flux audio vers le moteur d'inférence
-                    lifecycleScope.launch(Dispatchers.Default) {
-                        _audioStream.emit(processedChunk)
-                    }
+                    // Émission synchrone et ordonnée du flux audio vers le moteur d'inférence
+                    // (une coroutine par trame ne garantissait pas l'ordre des échantillons PCM)
+                    _audioStream.tryEmit(processedChunk)
                 }
             }
+            Log.w(TAG, "Boucle de lecture terminée (isRecording=${isRecording.get()}, recordingState=${audioRecord?.recordingState})")
         }, "LiveSub-AudioReader").apply { start() }
     }
 
@@ -176,6 +204,7 @@ class AudioCaptureService : LifecycleService() {
         stopCurrentRecord()
 
         try {
+            mediaProjection?.unregisterCallback(projectionCallback)
             mediaProjection?.stop()
         } catch (e: Exception) {
             e.printStackTrace()
@@ -228,6 +257,7 @@ class AudioCaptureService : LifecycleService() {
     }
 
     companion object {
+        private const val TAG = "LiveSub_Audio"
         const val ACTION_START = "com.livesub.app.action.START_CAPTURE"
         const val ACTION_STOP = "com.livesub.app.action.STOP_CAPTURE"
         const val EXTRA_RESULT_CODE = "extra_result_code"
@@ -236,7 +266,10 @@ class AudioCaptureService : LifecycleService() {
         private val _serviceState = MutableStateFlow(SubtitleUiState())
         val serviceState: StateFlow<SubtitleUiState> = _serviceState.asStateFlow()
 
-        private val _audioStream = MutableSharedFlow<AudioChunk>(extraBufferCapacity = 64)
+        private val _audioStream = MutableSharedFlow<AudioChunk>(
+            extraBufferCapacity = 64,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST
+        )
         val audioStream: SharedFlow<AudioChunk> = _audioStream.asSharedFlow()
 
         fun updateUiState(transform: (SubtitleUiState) -> SubtitleUiState) {

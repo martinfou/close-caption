@@ -5,11 +5,15 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
 
+import com.livesub.app.domain.repository.SubtitleRepository
+
 class LiveSubApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        instance = this
         createNotificationChannel()
+        SubtitleRepository.initializeWithContext(this)
     }
 
     private fun createNotificationChannel() {
@@ -29,6 +33,9 @@ class LiveSubApplication : Application() {
     }
 
     companion object {
+        lateinit var instance: LiveSubApplication
+            private set
+
         const val NOTIFICATION_CHANNEL_ID = "livesub_audio_service"
         const val NOTIFICATION_ID = 1001
     }

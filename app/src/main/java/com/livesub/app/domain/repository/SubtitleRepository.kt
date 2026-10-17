@@ -1,9 +1,11 @@
 package com.livesub.app.domain.repository
 
+import android.content.Context
 import com.livesub.app.audio.AudioCaptureService
 import com.livesub.app.domain.model.LanguagePair
 import com.livesub.app.domain.model.SubtitleItem
 import com.livesub.app.domain.model.SubtitleUiState
+import com.livesub.app.ml.AndroidSpeechRecognizerEngine
 import com.livesub.app.ml.AsrEngine
 import com.livesub.app.ml.MockSherpaOnnxAsrEngine
 import com.livesub.app.ml.MlKitTranslationEngine
@@ -49,8 +51,22 @@ object SubtitleRepository {
                     isRunning = serviceState.isRunning,
                     isMicFallback = serviceState.isMicFallback
                 )
+                // Capture interne active -> l'ASR transcrit l'audio injecté ; sinon il écoute le micro
+                asrEngine.setExternalAudioEnabled(serviceState.isRunning && !serviceState.isMicFallback)
             }
         }
+    }
+
+    /**
+     * Initialise le moteur ASR avec le moteur Android on-device SpeechRecognizer.
+     */
+    fun initializeWithContext(context: Context) {
+        val engine = AndroidSpeechRecognizerEngine(context.applicationContext)
+        engine.setLanguage(_uiState.value.activeLanguages.sourceCode)
+        val captureState = AudioCaptureService.serviceState.value
+        engine.setExternalAudioEnabled(captureState.isRunning && !captureState.isMicFallback)
+        asrEngine = engine
+        streamingProcessor = StreamingAsrProcessor(asrEngine, scope)
     }
 
     /**
@@ -74,17 +90,23 @@ object SubtitleRepository {
      */
     fun startPipeline() {
         stopPipeline()
+        clearSession()
 
+        // 1. Démarrer et configurer le moteur ASR
+        val currentLang = _uiState.value.activeLanguages
+        asrEngine.setLanguage(currentLang.sourceCode)
+        asrEngine.start()
+
+        // 2. Écouter le flux ASR direct (partiels et finaux) pour réactivité immédiate
         asrCollectionJob = scope.launch {
-            // Écouter les phrases finalisées par le processeur ASR
-            streamingProcessor.finalizedPhrases.collect { asrResult ->
+            asrEngine.resultFlow.collect { asrResult ->
                 val sourceText = asrResult.text.trim()
                 if (sourceText.isNotEmpty()) {
-                    val currentLang = _uiState.value.activeLanguages
+                    val lang = _uiState.value.activeLanguages
                     val translationResult = translationEngine.translate(
                         text = sourceText,
-                        sourceLangCode = currentLang.sourceCode,
-                        targetLangCode = currentLang.targetCode
+                        sourceLangCode = lang.sourceCode,
+                        targetLangCode = lang.targetCode
                     )
 
                     val translatedText = translationResult.getOrDefault(sourceText)
@@ -94,11 +116,13 @@ object SubtitleRepository {
                         translatedText = translatedText,
                         startTimeMs = asrResult.startTimeMs,
                         endTimeMs = asrResult.endTimeMs,
-                        isFinal = true
+                        isFinal = asrResult.isFinal
                     )
 
-                    synchronized(_sessionSubtitles) {
-                        _sessionSubtitles.add(subtitle)
+                    if (asrResult.isFinal) {
+                        synchronized(_sessionSubtitles) {
+                            _sessionSubtitles.add(subtitle)
+                        }
                     }
 
                     _uiState.value = _uiState.value.copy(
@@ -108,8 +132,8 @@ object SubtitleRepository {
             }
         }
 
+        // 3. Consommer le flux audio issu de AudioCaptureService
         audioCollectionJob = scope.launch {
-            // Consommer le flux audio issu de AudioCaptureService
             AudioCaptureService.audioStream.collect { chunk ->
                 streamingProcessor.processChunk(chunk)
             }
@@ -124,6 +148,7 @@ object SubtitleRepository {
         asrCollectionJob?.cancel()
         audioCollectionJob = null
         asrCollectionJob = null
+        asrEngine.stop()
         streamingProcessor.reset()
     }
 
@@ -132,6 +157,7 @@ object SubtitleRepository {
      */
     fun setLanguagePair(languages: LanguagePair) {
         _uiState.value = _uiState.value.copy(activeLanguages = languages)
+        asrEngine.setLanguage(languages.sourceCode)
     }
 
     /**
