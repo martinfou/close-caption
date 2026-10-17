@@ -4,6 +4,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -77,10 +79,15 @@ fun SubtitlePill(
         modifier = modifier
             .padding(8.dp)
             .widthIn(min = 200.dp, max = 460.dp)
-            .animateContentSize()
+            .animateContentSize(
+                animationSpec = tween(
+                    durationMillis = 150,
+                    easing = FastOutSlowInEasing
+                )
+            )
             .pointerInput(Unit) {
                 detectTransformGestures { _, _, zoom, _ ->
-                    if (zoom != 1.0f) {
+                    if (kotlin.math.abs(zoom - 1.0f) > 0.02f) {
                         val newSize = uiState.fontSizeSp * zoom
                         SubtitleRepository.setFontSize(newSize)
                     }
