@@ -12,7 +12,7 @@ public protocol AudioSocketServerDelegate: AnyObject {
 }
 
 public final class AudioSocketServer {
-    public weak var delegate: AudioSocketServerDelegate?
+    public var delegate: AudioSocketServerDelegate?
     private let socketPath: String
     private var serverFD: Int32 = -1
     private var clientFD: Int32 = -1

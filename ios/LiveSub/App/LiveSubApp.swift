@@ -8,6 +8,7 @@ import AVFoundation
 @main
 struct LiveSubApp: App {
     @StateObject private var speechRecognizer = SpeechRecognizer()
+    @State private var coordinator: SocketCoordinator?
     private let socketServer = AudioSocketServer()
 
     init() {
@@ -41,8 +42,11 @@ struct LiveSubApp: App {
     }
 
     private func setupIPC() {
-        socketServer.delegate = SocketCoordinator(speechRecognizer: speechRecognizer)
+        let coord = SocketCoordinator(speechRecognizer: speechRecognizer)
+        self.coordinator = coord
+        socketServer.delegate = coord
         socketServer.start()
+        print("[LiveSubApp] IPC SocketServer started and coordinator retained.")
     }
 }
 

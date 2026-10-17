@@ -42,16 +42,21 @@ public final class SpeechRecognizer: ObservableObject {
         stopStreaming()
 
         guard let recognizer = speechRecognizer, recognizer.isAvailable else {
+            print("[SpeechRecognizer] Recognizer is NOT available for locale \(currentLocale)")
             transcript = "Speech engine unavailable"
             return
         }
 
+        print("[SpeechRecognizer] Starting stream with recognizer: \(recognizer.locale.identifier)")
         let request = SFSpeechAudioBufferRecognitionRequest()
         request.shouldReportPartialResults = true
         
         // Enables offline neural engine transcription (zero network lag)
         if recognizer.supportsOnDeviceRecognition {
             request.requiresOnDeviceRecognition = true
+            print("[SpeechRecognizer] On-device recognition enabled")
+        } else {
+            print("[SpeechRecognizer] Using standard recognition (on-device not supported on this device/simulator)")
         }
 
         self.recognitionRequest = request
@@ -63,8 +68,13 @@ public final class SpeechRecognizer: ObservableObject {
 
             if let result = result {
                 let text = result.bestTranscription.formattedString
+                print("[SpeechRecognizer] Recognized text: \(text)")
                 self.transcript = text
                 self.updateRecentLines(text)
+            }
+
+            if let error = error {
+                print("[SpeechRecognizer] Recognition task error: \(error.localizedDescription)")
             }
 
             if error != nil || (result?.isFinal ?? false) {
@@ -74,7 +84,10 @@ public final class SpeechRecognizer: ObservableObject {
     }
 
     public func appendPCMData(_ data: Data) {
-        guard isRecognizing, let request = recognitionRequest else { return }
+        guard isRecognizing, let request = recognitionRequest else {
+            print("[SpeechRecognizer] appendPCMData skipped (isRecognizing: \(isRecognizing), request: \(recognitionRequest != nil))")
+            return
+        }
         if let buffer = AudioPCMUtils.pcmBuffer(from: data) {
             request.append(buffer)
         }
