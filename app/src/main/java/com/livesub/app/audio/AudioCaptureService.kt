@@ -81,8 +81,12 @@ class AudioCaptureService : LifecycleService() {
                 if (resultCode == Activity.RESULT_OK && resultData != null) {
                     val projectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
                     val projection = projectionManager.getMediaProjection(resultCode, resultData)
-                    mediaProjection = projection
-                    startAudioCapture(projection)
+                    if (projection != null) {
+                        mediaProjection = projection
+                        startAudioCapture(projection)
+                    } else {
+                        startMicrophoneCapture("jeton MediaProjection null")
+                    }
                 } else {
                     // Si pas de projection media, démarrage direct sur micro
                     startMicrophoneCapture("pas de jeton MediaProjection")
