@@ -4,11 +4,11 @@
 
 <div align="center">
 
-[![Build and Release APK](https://github.com/martinfou/close-caption/actions/workflows/build-apk.yml/badge.svg)](https://github.com/martinfou/close-caption/actions/workflows/build-apk.yml)
-[![Latest Release](https://img.shields.io/github/v/release/martinfou/close-caption?label=Latest%20Release&color=00E5FF)](https://github.com/martinfou/close-caption/releases/latest)
+[![Build and Release APK](https://github.com/martinfou/live-sub/actions/workflows/build-apk.yml/badge.svg)](https://github.com/martinfou/live-sub/actions/workflows/build-apk.yml)
+[![Latest Release](https://img.shields.io/github/v/release/martinfou/live-sub?label=Latest%20Release&color=00E5FF)](https://github.com/martinfou/live-sub/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-### 📥 [Download Ready-to-Install APK (GitHub Releases)](https://github.com/martinfou/close-caption/releases/latest)
+### 📥 [Download Ready-to-Install APK (GitHub Releases)](https://github.com/martinfou/live-sub/releases/latest)
 
 </div>
 
@@ -44,7 +44,7 @@
 
 ## 🚀 Quick Start (Installation)
 
-1. Go to the **[Latest GitHub Release](https://github.com/martinfou/close-caption/releases/latest)**.
+1. Go to the **[Latest GitHub Release](https://github.com/martinfou/live-sub/releases/latest)**.
 2. Download **`LiveSub-debug.apk`**.
 3. Open the file on your Android device (Android 10+ recommended, Android 13+ for direct pipe playback capture).
 4. Allow installation from unknown sources when prompted.
@@ -61,8 +61,8 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/martinfou/close-caption.git
-cd close-caption
+git clone https://github.com/martinfou/live-sub.git
+cd live-sub
 
 # Run unit tests
 ./gradlew testDebugUnitTest

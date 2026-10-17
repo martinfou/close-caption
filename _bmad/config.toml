@@ -1,5 +1,5 @@
 [core]
-project_name = "close-caption"
+project_name = "live-sub"
 output_folder = "{project-root}/_bmad-output"
 
 [modules.tea]
