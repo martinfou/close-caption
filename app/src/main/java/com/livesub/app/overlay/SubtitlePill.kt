@@ -77,17 +77,11 @@ fun SubtitlePill(
 
     Box(
         modifier = modifier
-            .padding(8.dp)
-            .widthIn(min = 200.dp, max = 460.dp)
-            .animateContentSize(
-                animationSpec = tween(
-                    durationMillis = 150,
-                    easing = FastOutSlowInEasing
-                )
-            )
+            .padding(6.dp)
+            .fillMaxWidth()
             .pointerInput(Unit) {
                 detectTransformGestures { _, _, zoom, _ ->
-                    if (kotlin.math.abs(zoom - 1.0f) > 0.02f) {
+                    if (kotlin.math.abs(zoom - 1.0f) > 0.05f) {
                         val newSize = uiState.fontSizeSp * zoom
                         SubtitleRepository.setFontSize(newSize)
                     }

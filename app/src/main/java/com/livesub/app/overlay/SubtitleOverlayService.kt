@@ -55,8 +55,10 @@ class SubtitleOverlayService : Service() {
             WindowManager.LayoutParams.TYPE_PHONE
         }
 
+        val targetOverlayWidth = minOf((screenWidth * 0.92f).toInt(), (460 * displayMetrics.density).toInt())
+
         layoutParams = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT,
+            targetOverlayWidth,
             WindowManager.LayoutParams.WRAP_CONTENT,
             overlayType,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
@@ -65,7 +67,7 @@ class SubtitleOverlayService : Service() {
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
-            x = max(20, (screenWidth - 800) / 2)
+            x = (screenWidth - targetOverlayWidth) / 2
             y = 140
         }
 
