@@ -5,7 +5,7 @@
 import Foundation
 
 public struct AudioSocketConstants {
-    public static let appGroupId = "group.com.livesub.app"
+    public static let appGroupId = "group.com.martinfournier.livesub"
     public static let socketFileName = "audio_stream.sock"
     
     public static var socketURL: URL? {

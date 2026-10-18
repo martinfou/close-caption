@@ -1,6 +1,6 @@
 name: LiveSub
 options:
-  bundleIdPrefix: com.livesub
+  bundleIdPrefix: com.martinfournier
   deploymentTarget:
     iOS: "16.0"
   createIntermediateGroups: true
@@ -28,7 +28,7 @@ targets:
       - target: LiveSubBroadcast
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.livesub.app
+        PRODUCT_BUNDLE_IDENTIFIER: com.martinfournier.livesub
         INFOPLIST_FILE: LiveSub/Resources/Info.plist
 
   LiveSubBroadcast:
@@ -43,5 +43,5 @@ targets:
       path: LiveSubBroadcast/LiveSubBroadcast.entitlements
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.livesub.app.LiveSubBroadcast
+        PRODUCT_BUNDLE_IDENTIFIER: com.martinfournier.livesub.LiveSubBroadcast
         INFOPLIST_FILE: LiveSubBroadcast/Info.plist

@@ -424,7 +424,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.livesub.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.martinfournier.livesub;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -440,7 +440,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.livesub.app.LiveSubBroadcast;
+				PRODUCT_BUNDLE_IDENTIFIER = com.martinfournier.livesub.LiveSubBroadcast;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -457,7 +457,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.livesub.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.martinfournier.livesub;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -473,7 +473,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.livesub.app.LiveSubBroadcast;
+				PRODUCT_BUNDLE_IDENTIFIER = com.martinfournier.livesub.LiveSubBroadcast;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
