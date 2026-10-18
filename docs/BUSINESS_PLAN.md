@@ -79,13 +79,13 @@ flowchart TD
 
 ```mermaid
 quadrantChart
-    title Competitive Positioning (Mobile Video Subtitles)
-    x-axis Low App Compatibility --> Universal Cross-App (PiP / Overlay)
+    title Competitive Positioning - Mobile Video Subtitles
+    x-axis Low App Compatibility --> Universal System Overlay
     y-axis Transcription Only --> Real-Time Translation
-    quadrant-1 Uncontested Moat (LiveSub)
-    quadrant-2 Browser Extensions (Language Reactor)
-    quadrant-3 In-Player Captions (YouTube)
-    quadrant-4 Native Captions (Apple Live Captions)
+    quadrant-1 Uncontested Moat - LiveSub
+    quadrant-2 Cloud Browser Extensions
+    quadrant-3 In-Player Captions
+    quadrant-4 Native Accessibility Captions
     "LiveSub": [0.88, 0.88]
     "Apple Live Captions": [0.82, 0.20]
     "Language Reactor": [0.25, 0.85]
@@ -297,18 +297,18 @@ gantt
     title LiveSub 14-Day Dual-Platform Launch Sprint
     dateFormat YYYY-MM-DD
     axisFormat Day %d
-    section 1. Validation & APK Release
+    section 1. Validation and APK Release
     Publish Android APK on GitHub Releases   :done, val1, 2026-10-18, 2d
-    Share Landing Page on Reddit / Anime     :done, val2, 2026-10-18, 3d
-    Collect First 100 iOS & Android Signups  :active, val3, 2026-10-18, 3d
+    Share Landing Page on Reddit and Anime   :done, val2, 2026-10-18, 3d
+    Collect First 100 Signups                :active, val3, 2026-10-18, 3d
     section 2. Monetization
-    StoreKit 2 Setup & Android Billing       :crit, pay1, 2026-10-21, 4d
-    Pro Paywall UI & Daily Cap Logic         :pay2, 2026-10-22, 3d
+    StoreKit 2 Setup and Android Billing     :crit, pay1, 2026-10-21, 4d
+    Pro Paywall UI and Daily Cap Logic       :pay2, 2026-10-22, 3d
     section 3. Beta Expansion
-    Seed TestFlight Beta Wave (Yan + 50)     :tf1, 2026-10-25, 3d
+    Seed TestFlight Beta Wave for Waitlist   :tf1, 2026-10-25, 3d
     Distribute Updated APK to Android Testers:tf2, 2026-10-25, 3d
     section 4. Store Submissions
-    Prepare ASO Assets (App Store & Google Play) :app1, 2026-10-28, 3d
+    Prepare ASO Assets for Both App Stores   :app1, 2026-10-28, 3d
     Submit to Both App Stores                :app2, 2026-10-30, 2d
 ```
 
