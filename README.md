@@ -102,25 +102,53 @@ app/build/outputs/apk/debug/app-debug.apk
 
 ---
 
-## 📄 iOS Architecture Overview
+## 🏗️ Architecture & Data Flow
 
-```
-[System Audio (YouTube, Safari, Media)]
-                 │
-                 ▼
-    [LiveSubBroadcast Extension]  (ReplayKit RPSampleBufferType.audioApp)
-                 │
-                 ▼ (TCP Loopback 127.0.0.1:19834)
-       [AudioSocketServer] (Main App Host)
-                 │ (Stereo to Mono PCM Downmix)
-                 ▼
-       [SpeechRecognizer] (Apple SFSpeechRecognizer)
-                 │ (Live Source Transcript)
-                 ▼
-      [TranslationManager] (Apple TranslationSession / Fast Engine)
-                 │ (Translated Text)
-                 ▼
-  [SubtitleOverlayView] ──► [Floating Picture-in-Picture HUD (PiP)]
+```mermaid
+flowchart TD
+    subgraph AudioSources["🔊 Audio Sources"]
+        Media["System Media Playback\n(YouTube, Safari, Podcasts)"]
+        Mic["Hardware Microphone\n(Direct Input Fallback)"]
+    end
+
+    subgraph iOSPipeline["🍎 iOS / iPadOS Pipeline"]
+        Ext["LiveSubBroadcast Extension\n(ReplayKit RPSampleBufferType.audioApp)"]
+        TCP["TCP Socket Server\n(127.0.0.1:19834)"]
+        PCM["AudioPCMUtils\n(Big-Endian Decode & Mono Downmix)"]
+        Speech["SpeechRecognizer\n(Apple SFSpeechRecognizer)"]
+        Trans["TranslationManager\n(On-device TranslationSession / Fallback)"]
+        PiP["PiPManager\n(AVPictureInPictureVideoCallViewController)"]
+        Overlay["SubtitleOverlayView\n(Dual-Language Floating HUD)"]
+
+        Media --> Ext
+        Ext -->|"Mono Int16 PCM\nover TCP"| TCP
+        TCP --> PCM
+        PCM --> Speech
+        Mic -.->|"AVAudioEngine"| Speech
+        Speech -->|"Source Transcript"| Trans
+        Trans -->|"Translated Subtitles"| Overlay
+        PiP -.->|"Presents Floating Window"| Overlay
+    end
+
+    subgraph AndroidPipeline["🤖 Android Pipeline"]
+        Capture["AudioPlaybackCapture\n(MediaProjection API)"]
+        ASR["SpeechRecognizer\n(Android Speech Engine)"]
+        MLKit["Google ML Kit Translate\n(Offline Neural Models)"]
+        HUD["System Floating Pill\n(WindowManager Overlay)"]
+
+        Media --> Capture
+        Capture --> ASR
+        ASR -->|"Source Text"| MLKit
+        MLKit -->|"Translated Text"| HUD
+    end
+
+    classDef source fill:#2A2D34,stroke:#4E5D6C,stroke-width:1px,color:#fff;
+    classDef ios fill:#1E293B,stroke:#38BDF8,stroke-width:2px,color:#fff;
+    classDef android fill:#143026,stroke:#34D399,stroke-width:2px,color:#fff;
+
+    class Media,Mic source;
+    class Ext,TCP,PCM,Speech,Trans,PiP,Overlay ios;
+    class Capture,ASR,MLKit,HUD android;
 ```
 
 ---
