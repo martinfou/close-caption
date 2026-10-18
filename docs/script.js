@@ -103,9 +103,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       setTimeout(() => {
         form.innerHTML = `
-          <div style="padding: 14px 20px; color: #10b981; font-weight: 600; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;">
-            <span>🎉 You're on the VIP waitlist!</span>
-            <span style="color: #94a3b8; font-weight: 400; font-size: 0.9rem;">TestFlight invite link sent to ${email} shortly.</span>
+          <div style="padding: 14px 20px; font-weight: 500; font-size: 0.95rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 100%;">
+            <span style="color: #10b981; font-weight: 600;">You're on the early access list.</span>
+            <span style="color: #94a3b8; font-size: 0.88rem;">We'll email a TestFlight link to ${email} as spots open.</span>
           </div>
         `;
       }, 700);
