@@ -10,7 +10,7 @@ settings:
     SWIFT_VERSION: "5.9"
     IPHONEOS_DEPLOYMENT_TARGET: "16.0"
     TARGETED_DEVICE_FAMILY: "1,2"
-    DEVELOPMENT_TEAM: ""
+    DEVELOPMENT_TEAM: "73GKXRXN2G"
     CODE_SIGN_STYLE: Automatic
 
 targets:
@@ -22,6 +22,12 @@ targets:
       - path: Shared
     info:
       path: LiveSub/Resources/Info.plist
+      properties:
+        CFBundleDisplayName: "LiveSub"
+        NSSpeechRecognitionUsageDescription: "LiveSub requires speech recognition to transcribe audio into subtitles in real-time on your device."
+        NSMicrophoneUsageDescription: "LiveSub requires microphone access for audio input fallback."
+        UIBackgroundModes:
+          - audio
     entitlements:
       path: LiveSub/LiveSub.entitlements
     dependencies:
@@ -39,6 +45,12 @@ targets:
       - path: Shared
     info:
       path: LiveSubBroadcast/Info.plist
+      properties:
+        CFBundleDisplayName: "LiveSub Broadcast"
+        NSExtension:
+          NSExtensionPointIdentifier: "com.apple.broadcast-services-upload"
+          NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).SampleHandler"
+          RPBroadcastProcessMode: "RPBroadcastProcessModeSampleBuffer"
     entitlements:
       path: LiveSubBroadcast/LiveSubBroadcast.entitlements
     settings:
