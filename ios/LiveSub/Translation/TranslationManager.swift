@@ -12,10 +12,10 @@ import Translation
 
 public struct AppLanguage: Identifiable, Hashable {
     public let id: String
-    public let code: String          // e.g. "en-US"
-    public let langCode: String      // e.g. "en"
-    public let name: String          // e.g. "English"
-    public let flag: String          // e.g. "🇺🇸"
+    public let code: String          // speech locale, e.g. "en-US"
+    public let langCode: String      // translation language, e.g. "en"
+    public let name: String
+    public let flag: String
 
     public init(code: String, langCode: String, name: String, flag: String) {
         self.id = code
@@ -24,6 +24,9 @@ public struct AppLanguage: Identifiable, Hashable {
         self.name = name
         self.flag = flag
     }
+
+    /// Language code understood by the online fallback translator.
+    var onlineCode: String { langCode == "zh-Hans" ? "zh-CN" : langCode }
 }
 
 @MainActor
@@ -45,158 +48,207 @@ public final class TranslationManager: ObservableObject {
         AppLanguage(code: "nl-NL", langCode: "nl", name: "Nederlands", flag: "🇳🇱")
     ]
 
-    @AppStorage("sourceLanguageCode") public var sourceCode: String = "en-US" {
-        didSet { updateSelectedLanguages() }
-    }
-    @AppStorage("targetLanguageCode") public var targetCode: String = "fr-FR" {
-        didSet { updateSelectedLanguages() }
-    }
-    @AppStorage("isTranslationEnabled") public var isTranslationEnabled: Bool = true
-    @AppStorage("showOriginalInPiP") public var showOriginalInPiP: Bool = true
+    // MARK: Persisted settings (published so SwiftUI updates immediately)
 
-    @Published public var sourceLanguage: AppLanguage
-    @Published public var targetLanguage: AppLanguage
+    @Published public var isTranslationEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(isTranslationEnabled, forKey: "isTranslationEnabled")
+            resetPending()
+        }
+    }
+    @Published public var showOriginalInPiP: Bool {
+        didSet { UserDefaults.standard.set(showOriginalInPiP, forKey: "showOriginalInPiP") }
+    }
+    @Published public private(set) var sourceLanguage: AppLanguage
+    @Published public private(set) var targetLanguage: AppLanguage
+
+    // MARK: Output
+
     @Published public var translatedText: String = ""
     @Published public var isTranslating: Bool = false
-    @Published public var translationStatus: String = "Ready"
+    /// Human readable engine state, e.g. "On-device" / "Online" / "Offline – showing original".
+    @Published public var engineStatus: String = ""
 
-    #if canImport(Translation)
-    private var _activeSession: Any?
-    @available(iOS 18.0, *)
-    public var activeSession: TranslationSession? {
-        get { _activeSession as? TranslationSession }
-        set { _activeSession = newValue }
+    public var sourceCode: String { sourceLanguage.code }
+    public var targetCode: String { targetLanguage.code }
+
+    public var isActiveTranslation: Bool {
+        isTranslationEnabled && sourceLanguage.langCode != targetLanguage.langCode
     }
-    #endif
 
-    private var translationTask: Task<Void, Never>?
-    private var lastTranslatedInput: String = ""
+    // MARK: Internals
+
+    private var generation = 0
+    private var lastRequested = ""
+    private var lastTranscript = ""
+
+    private var appleContinuation: AsyncStream<String>.Continuation?
+    private var appleReady = false
+    private var appleFailures = 0
+
+    private var onlineTask: Task<Void, Never>?
+    private var pendingOnline: String?
+    private var lastOnlineTime = Date.distantPast
 
     public init() {
-        let initialSource = Self.supportedLanguages.first { $0.code == "en-US" } ?? Self.supportedLanguages[0]
-        let initialTarget = Self.supportedLanguages.first { $0.code == "fr-FR" } ?? Self.supportedLanguages[2]
-        self.sourceLanguage = initialSource
-        self.targetLanguage = initialTarget
-        updateSelectedLanguages()
+        let defaults = UserDefaults.standard
+        let src = defaults.string(forKey: "sourceLanguageCode") ?? "en-US"
+        let tgt = defaults.string(forKey: "targetLanguageCode") ?? "fr-FR"
+        self.sourceLanguage = Self.supportedLanguages.first { $0.code == src } ?? Self.supportedLanguages[0]
+        self.targetLanguage = Self.supportedLanguages.first { $0.code == tgt } ?? Self.supportedLanguages[2]
+        self.isTranslationEnabled = defaults.object(forKey: "isTranslationEnabled") as? Bool ?? true
+        self.showOriginalInPiP = defaults.object(forKey: "showOriginalInPiP") as? Bool ?? true
     }
 
-    private func updateSelectedLanguages() {
-        if let s = Self.supportedLanguages.first(where: { $0.code == sourceCode }) {
-            self.sourceLanguage = s
-        }
-        if let t = Self.supportedLanguages.first(where: { $0.code == targetCode }) {
-            self.targetLanguage = t
-        }
-    }
+    // MARK: Language selection
 
     public func setSource(_ lang: AppLanguage) {
-        sourceCode = lang.code
         sourceLanguage = lang
-        triggerRetranslation()
+        UserDefaults.standard.set(lang.code, forKey: "sourceLanguageCode")
+        resetPending()
     }
 
     public func setTarget(_ lang: AppLanguage) {
-        targetCode = lang.code
         targetLanguage = lang
-        triggerRetranslation()
+        UserDefaults.standard.set(lang.code, forKey: "targetLanguageCode")
+        resetPending()
     }
 
     public func swapLanguages() {
-        let oldSource = sourceLanguage
-        let oldTarget = targetLanguage
-        setSource(oldTarget)
-        setTarget(oldSource)
+        let s = sourceLanguage, t = targetLanguage
+        setSource(t)
+        setTarget(s)
     }
 
-    public func triggerRetranslation() {
-        lastTranslatedInput = ""
-        #if canImport(Translation)
-        _activeSession = nil
-        #endif
+    /// Language changed: discard stale work and the old translation.
+    private func resetPending() {
+        generation += 1
+        lastRequested = ""
+        pendingOnline = nil
+        translatedText = ""
+        appleFailures = 0
     }
+
+    // MARK: Translation entry point
 
     public func translate(sourceText: String) {
-        let trimmed = sourceText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else {
-            translatedText = ""
-            return
-        }
+        let text = sourceText.trimmingCharacters(in: .whitespacesAndNewlines)
+        lastTranscript = text
 
-        // If translation is turned off or languages match, mirror source
-        guard isTranslationEnabled, sourceLanguage.langCode != targetLanguage.langCode else {
-            translatedText = trimmed
-            return
-        }
+        guard !text.isEmpty else { return }
+        guard isActiveTranslation else { translatedText = ""; return }
+        guard text != lastRequested else { return }
+        lastRequested = text
+        isTranslating = true
 
-        guard trimmed != lastTranslatedInput else { return }
-        lastTranslatedInput = trimmed
-
-        translationTask?.cancel()
-        translationTask = Task { @MainActor in
-            isTranslating = true
-            translationStatus = "Translating \(sourceLanguage.langCode.uppercased()) ➔ \(targetLanguage.langCode.uppercased())..."
-
-            // 1. Try Apple on-device TranslationSession first if available
-            #if canImport(Translation)
-            if #available(iOS 18.0, *) {
-                if let session = activeSession {
-                    do {
-                        let response = try await session.translate(trimmed)
-                        if !Task.isCancelled {
-                            self.translatedText = response.targetText
-                            self.translationStatus = "Live translated"
-                            self.isTranslating = false
-                            return
-                        }
-                    } catch {
-                        print("[TranslationManager] Apple session error: \(error), falling back to instant translator...")
-                    }
-                }
-            }
-            #endif
-
-            // 2. High-speed fallback translator (handles any language pair instantly without waiting for model downloads)
-            let src = sourceLanguage.langCode
-            let tgt = targetLanguage.langCode
-            if let result = await fetchOnlineTranslation(text: trimmed, from: src, to: tgt) {
-                if !Task.isCancelled {
-                    self.translatedText = result
-                    self.translationStatus = "Live translated"
-                    self.isTranslating = false
-                    return
-                }
-            }
-
-            // 3. Fallback
-            if !Task.isCancelled {
-                self.translatedText = trimmed
-                self.isTranslating = false
-            }
+        if appleReady && appleFailures < 2 {
+            appleContinuation?.yield(text)          // newest-only buffer: never queues up
+        } else {
+            scheduleOnline(text)
         }
     }
 
-    private func fetchOnlineTranslation(text: String, from: String, to: String) async -> String? {
-        guard let encoded = text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else { return nil }
-        let urlString = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=\(from)&tl=\(to)&dt=t&q=\(encoded)"
-        guard let url = URL(string: urlString) else { return nil }
+    // MARK: Apple on-device engine (runs inside the system translationTask closure)
 
+    #if canImport(Translation)
+    @available(iOS 18.0, *)
+    public func runSession(_ session: TranslationSession) async {
+        var cont: AsyncStream<String>.Continuation!
+        let stream = AsyncStream<String>(bufferingPolicy: .bufferingNewest(1)) { cont = $0 }
+        appleContinuation?.finish()
+        appleContinuation = cont
+        appleReady = true
+        defer {
+            appleReady = false
+            cont.finish()
+        }
+
+        if !lastTranscript.isEmpty && isActiveTranslation {
+            lastRequested = lastTranscript
+            cont.yield(lastTranscript)
+        }
+
+        for await text in stream {
+            let gen = generation
+            do {
+                let response = try await session.translate(text)
+                guard gen == generation else { continue }
+                translatedText = response.targetText
+                engineStatus = "On-device"
+                isTranslating = false
+                appleFailures = 0
+            } catch {
+                if Task.isCancelled { break }
+                appleFailures += 1
+                print("[Translation] On-device failed (\(appleFailures)): \(error)")
+                lastRequested = ""
+                scheduleOnline(text)
+            }
+        }
+    }
+    #endif
+
+    // MARK: Online fallback (throttled, keeps last good translation on failure)
+
+    private func scheduleOnline(_ text: String) {
+        pendingOnline = text
+        guard onlineTask == nil else { return }
+
+        onlineTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            while self.pendingOnline != nil {
+                let wait = 0.5 - Date().timeIntervalSince(self.lastOnlineTime)
+                if wait > 0 { try? await Task.sleep(nanoseconds: UInt64(wait * 1_000_000_000)) }
+
+                guard let text = self.pendingOnline else { break }
+                self.pendingOnline = nil
+                self.lastOnlineTime = Date()
+                let gen = self.generation
+
+                let result = await Self.fetchOnline(
+                    text: text,
+                    from: self.sourceLanguage.onlineCode,
+                    to: self.targetLanguage.onlineCode
+                )
+                guard gen == self.generation else { continue }
+
+                if let result {
+                    self.translatedText = result
+                    self.engineStatus = "Online"
+                    self.isTranslating = false
+                } else {
+                    // Keep whatever translation we already have; allow a retry on the next update.
+                    self.engineStatus = "Offline – retrying"
+                    self.lastRequested = ""
+                    self.isTranslating = false
+                }
+            }
+            self.onlineTask = nil
+        }
+    }
+
+    private nonisolated static func fetchOnline(text: String, from: String, to: String) async -> String? {
+        var comps = URLComponents(string: "https://translate.googleapis.com/translate_a/single")!
+        comps.queryItems = [
+            URLQueryItem(name: "client", value: "gtx"),
+            URLQueryItem(name: "sl", value: from),
+            URLQueryItem(name: "tl", value: to),
+            URLQueryItem(name: "dt", value: "t"),
+            URLQueryItem(name: "q", value: text)
+        ]
+        guard let url = comps.url else { return nil }
         var request = URLRequest(url: url)
-        request.timeoutInterval = 3.5
+        request.timeoutInterval = 6
 
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
-            guard (response as? HTTPURLResponse)?.statusCode == 200 else { return nil }
-
-            if let json = try JSONSerialization.jsonObject(with: data) as? [Any],
-               let sentences = json.first as? [[Any]] {
-                let translated = sentences.compactMap { $0.first as? String }.joined()
-                if !translated.isEmpty {
-                    return translated
-                }
-            }
+            guard (response as? HTTPURLResponse)?.statusCode == 200,
+                  let json = try JSONSerialization.jsonObject(with: data) as? [Any],
+                  let sentences = json.first as? [[Any]] else { return nil }
+            let translated = sentences.compactMap { $0.first as? String }.joined()
+            return translated.isEmpty ? nil : translated
         } catch {
-            print("[TranslationManager] Online translation error: \(error)")
+            return nil
         }
-        return nil
     }
 }

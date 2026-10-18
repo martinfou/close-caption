@@ -15,12 +15,10 @@ public struct SubtitleOverlayView: View {
     }
 
     private var primaryText: String {
-        if translationManager.isTranslationEnabled && !translationManager.translatedText.isEmpty {
+        if translationManager.isActiveTranslation && !translationManager.translatedText.isEmpty {
             return translationManager.translatedText
         }
-        return speechRecognizer.transcript.isEmpty
-            ? (speechRecognizer.debugInfo.isEmpty ? "Listening… (\(speechRecognizer.audioPacketsReceived) buffers)" : "\(speechRecognizer.debugInfo) • \(speechRecognizer.audioPacketsReceived) bufs")
-            : speechRecognizer.transcript
+        return speechRecognizer.transcript.isEmpty ? "Listening…" : speechRecognizer.transcript
     }
 
     private var showOriginalText: Bool {
