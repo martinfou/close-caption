@@ -61,6 +61,12 @@ final class SocketCoordinator: AudioSocketServerDelegate {
         }
     }
 
+    func audioSocketServer(_ server: AudioSocketServer, didReceiveDebug text: String) {
+        Task { @MainActor in
+            speechRecognizer.debugInfo = text
+        }
+    }
+
     func audioSocketServerDidConnectClient(_ server: AudioSocketServer) {
         Task { @MainActor in
             speechRecognizer.isConnectedToBroadcast = true

@@ -17,6 +17,9 @@ public final class SpeechRecognizer: ObservableObject {
     @Published public var currentLocale: Locale
     @Published public var statusMessage: String = "Ready"
     @Published public var isMicMode: Bool = false
+    /// Live diagnostics (extension audio level/format, recognition errors) shown in the UI.
+    @Published public var debugInfo: String = ""
+    private var packetsSinceLastLog = 0
 
     private var speechRecognizer: SFSpeechRecognizer?
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
@@ -101,6 +104,7 @@ public final class SpeechRecognizer: ObservableObject {
 
             if let error = error {
                 print("[SpeechRecognizer] Recognition task error: \(error.localizedDescription)")
+                self.debugInfo = "ASR: \(error.localizedDescription)"
                 if self.preferOfflineRecognition {
                     self.preferOfflineRecognition = false
                 }

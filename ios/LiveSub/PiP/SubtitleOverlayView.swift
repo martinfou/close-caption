@@ -18,7 +18,9 @@ public struct SubtitleOverlayView: View {
         if translationManager.isTranslationEnabled && !translationManager.translatedText.isEmpty {
             return translationManager.translatedText
         }
-        return speechRecognizer.transcript.isEmpty ? "LiveSub active..." : speechRecognizer.transcript
+        return speechRecognizer.transcript.isEmpty
+            ? (speechRecognizer.debugInfo.isEmpty ? "Listening… (\(speechRecognizer.audioPacketsReceived) buffers)" : "\(speechRecognizer.debugInfo) • \(speechRecognizer.audioPacketsReceived) bufs")
+            : speechRecognizer.transcript
     }
 
     private var showOriginalText: Bool {

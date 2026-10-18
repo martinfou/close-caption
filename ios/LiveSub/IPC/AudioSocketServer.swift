@@ -8,6 +8,7 @@ import CoreMedia
 
 public protocol AudioSocketServerDelegate: AnyObject {
     func audioSocketServer(_ server: AudioSocketServer, didReceivePCMData data: Data, asbd: AudioStreamBasicDescription)
+    func audioSocketServer(_ server: AudioSocketServer, didReceiveDebug text: String)
     func audioSocketServerDidConnectClient(_ server: AudioSocketServer)
     func audioSocketServerDidDisconnectClient(_ server: AudioSocketServer)
 }
@@ -122,6 +123,15 @@ public final class AudioSocketServer {
             }
 
             guard bytesRead == audioDataSize else { break }
+
+            if asbd.mSampleRate < 0 {
+                let text = String(data: buffer, encoding: .utf8) ?? "?"
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
+                    self.delegate?.audioSocketServer(self, didReceiveDebug: text)
+                }
+                continue
+            }
 
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }

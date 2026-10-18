@@ -6,97 +6,43 @@ import Foundation
 import AVFoundation
 
 public final class AudioPCMUtils {
+    /// Converts mono/stereo interleaved 16-bit or 32-bit float PCM bytes into a mono
+    /// Float32 buffer, which is the format SFSpeechRecognizer handles most reliably.
     public static func monoPCMBuffer(from data: Data, asbd: AudioStreamBasicDescription) -> AVAudioPCMBuffer? {
         let sampleRate = asbd.mSampleRate > 0 ? asbd.mSampleRate : 44100.0
-        let channels = asbd.mChannelsPerFrame
-        let bitsPerChannel = asbd.mBitsPerChannel
+        let channels = Int(asbd.mChannelsPerFrame)
+        let bits = asbd.mBitsPerChannel
+        guard channels > 0, bits == 16 || bits == 32 else { return nil }
 
-        guard channels > 0 else { return nil }
+        let bytesPerSample = Int(bits / 8)
+        let frameCount = data.count / (bytesPerSample * channels)
+        guard frameCount > 0,
+              let format = AVAudioFormat(commonFormat: .pcmFormatFloat32,
+                                         sampleRate: sampleRate,
+                                         channels: 1,
+                                         interleaved: false),
+              let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(frameCount)),
+              let out = buffer.floatChannelData?[0] else { return nil }
+        buffer.frameLength = AVAudioFrameCount(frameCount)
 
-        if bitsPerChannel == 16 {
-            // 16-bit Linear PCM
-            guard let monoFormat = AVAudioFormat(
-                commonFormat: .pcmFormatInt16,
-                sampleRate: sampleRate,
-                channels: 1,
-                interleaved: false
-            ) else { return nil }
-
-            let bytesPerFrame = Int(channels * 2)
-            guard bytesPerFrame > 0 else { return nil }
-            let frameCount = data.count / bytesPerFrame
-            guard frameCount > 0,
-                  let buffer = AVAudioPCMBuffer(pcmFormat: monoFormat, frameCapacity: UInt32(frameCount)) else {
-                return nil
-            }
-            buffer.frameLength = UInt32(frameCount)
-
-            guard let channelData = buffer.int16ChannelData?[0] else { return nil }
-
-            data.withUnsafeBytes { rawBuffer in
-                guard let baseAddress = rawBuffer.baseAddress else { return }
-                let int16Ptr = baseAddress.assumingMemoryBound(to: Int16.self)
-
-                if channels == 1 {
-                    memcpy(channelData, int16Ptr, frameCount * MemoryLayout<Int16>.size)
-                } else if channels == 2 {
-                    // Downmix stereo to mono
-                    for frame in 0..<frameCount {
-                        let left = Int32(int16Ptr[frame * 2])
-                        let right = Int32(int16Ptr[frame * 2 + 1])
-                        channelData[frame] = Int16(clamping: (left + right) / 2)
-                    }
-                } else {
-                    // Multi-channel: take first channel or average
-                    for frame in 0..<frameCount {
-                        channelData[frame] = int16Ptr[frame * Int(channels)]
-                    }
+        data.withUnsafeBytes { (raw: UnsafeRawBufferPointer) in
+            guard let base = raw.baseAddress else { return }
+            if bits == 16 {
+                let p = base.assumingMemoryBound(to: Int16.self)
+                for i in 0..<frameCount {
+                    var sum: Float = 0
+                    for c in 0..<channels { sum += Float(p[i * channels + c]) / 32768.0 }
+                    out[i] = sum / Float(channels)
+                }
+            } else {
+                let p = base.assumingMemoryBound(to: Float32.self)
+                for i in 0..<frameCount {
+                    var sum: Float = 0
+                    for c in 0..<channels { sum += p[i * channels + c] }
+                    out[i] = sum / Float(channels)
                 }
             }
-            return buffer
-
-        } else if bitsPerChannel == 32 {
-            // 32-bit Float Linear PCM
-            guard let monoFormat = AVAudioFormat(
-                commonFormat: .pcmFormatFloat32,
-                sampleRate: sampleRate,
-                channels: 1,
-                interleaved: false
-            ) else { return nil }
-
-            let bytesPerFrame = Int(channels * 4)
-            guard bytesPerFrame > 0 else { return nil }
-            let frameCount = data.count / bytesPerFrame
-            guard frameCount > 0,
-                  let buffer = AVAudioPCMBuffer(pcmFormat: monoFormat, frameCapacity: UInt32(frameCount)) else {
-                return nil
-            }
-            buffer.frameLength = UInt32(frameCount)
-
-            guard let channelData = buffer.floatChannelData?[0] else { return nil }
-
-            data.withUnsafeBytes { rawBuffer in
-                guard let baseAddress = rawBuffer.baseAddress else { return }
-                let floatPtr = baseAddress.assumingMemoryBound(to: Float32.self)
-
-                if channels == 1 {
-                    memcpy(channelData, floatPtr, frameCount * MemoryLayout<Float32>.size)
-                } else if channels == 2 {
-                    // Downmix stereo to mono
-                    for frame in 0..<frameCount {
-                        let left = floatPtr[frame * 2]
-                        let right = floatPtr[frame * 2 + 1]
-                        channelData[frame] = (left + right) * 0.5
-                    }
-                } else {
-                    for frame in 0..<frameCount {
-                        channelData[frame] = floatPtr[frame * Int(channels)]
-                    }
-                }
-            }
-            return buffer
         }
-
-        return nil
+        return buffer
     }
 }

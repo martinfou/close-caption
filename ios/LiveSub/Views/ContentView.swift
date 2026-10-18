@@ -128,6 +128,13 @@ public struct ContentView: View {
                     .foregroundColor(.gray)
             }
             .padding(.top, 4)
+
+            if !speechRecognizer.debugInfo.isEmpty {
+                Text(speechRecognizer.debugInfo)
+                    .font(.system(size: 10, design: .monospaced))
+                    .foregroundColor(.yellow.opacity(0.8))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
         .padding(18)
         .background(
