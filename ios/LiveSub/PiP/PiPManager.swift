@@ -12,6 +12,7 @@ public final class PiPManager: NSObject, ObservableObject, AVPictureInPictureCon
     @Published public var isPiPActive = false
     @Published public var isPiPSupported = false
 
+    public let sourceView = UIView()
     private var pipController: AVPictureInPictureController?
     private var pipViewController: AVPictureInPictureVideoCallViewController?
     private var hostingController: UIHostingController<SubtitleOverlayView>?
@@ -29,7 +30,7 @@ public final class PiPManager: NSObject, ObservableObject, AVPictureInPictureCon
         self.hostingController = host
 
         let callVC = AVPictureInPictureVideoCallViewController()
-        callVC.preferredContentSize = CGSize(width: 340, height: 86)
+        callVC.preferredContentSize = CGSize(width: 360, height: 90)
         callVC.view.backgroundColor = .clear
         callVC.view.addSubview(host.view)
 
@@ -44,7 +45,7 @@ public final class PiPManager: NSObject, ObservableObject, AVPictureInPictureCon
         self.pipViewController = callVC
 
         let contentSource = AVPictureInPictureController.ContentSource(
-            activeVideoCallSourceView: UIView(),
+            activeVideoCallSourceView: sourceView,
             contentViewController: callVC
         )
 
@@ -70,4 +71,20 @@ public final class PiPManager: NSObject, ObservableObject, AVPictureInPictureCon
     public func pictureInPictureControllerDidStopPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
         DispatchQueue.main.async { self.isPiPActive = false }
     }
+}
+
+public struct PiPSourceViewRepresentable: UIViewRepresentable {
+    let view: UIView
+
+    public init(view: UIView) {
+        self.view = view
+    }
+
+    public func makeUIView(context: Context) -> UIView {
+        view.backgroundColor = .clear
+        view.isUserInteractionEnabled = false
+        return view
+    }
+
+    public func updateUIView(_ uiView: UIView, context: Context) {}
 }

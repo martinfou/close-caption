@@ -5,15 +5,9 @@
 import Foundation
 
 public struct AudioSocketConstants {
-    public static let appGroupId = "group.com.martinfournier.livesub"
-    public static let socketFileName = "audio_stream.sock"
+    /// TCP localhost port for inter-process communication between LiveSub and LiveSubBroadcast
+    public static let tcpPort: UInt16 = 19834
     
-    public static var socketURL: URL? {
-        FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupId)?
-            .appendingPathComponent(socketFileName)
-    }
-    
-    // Default ReplayKit audio is 44.1kHz or 48kHz 16-bit Linear PCM, 1 or 2 channels
-    public static let sampleRate: Double = 44100.0
-    public static let channelCount: UInt32 = 1
+    // Default fallback sample rate
+    public static let defaultSampleRate: Double = 44100.0
 }

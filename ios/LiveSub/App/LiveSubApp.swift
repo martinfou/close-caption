@@ -4,6 +4,7 @@
 //
 import SwiftUI
 import AVFoundation
+import CoreMedia
 
 @main
 struct LiveSubApp: App {
@@ -31,11 +32,11 @@ struct LiveSubApp: App {
             let session = AVAudioSession.sharedInstance()
             // .mixWithOthers ensures LiveSub does NOT pause Spotify/YouTube playback!
             try session.setCategory(
-                .playback,
-                mode: .default,
-                options: [.mixWithOthers]
+                .playAndRecord,
+                mode: .spokenAudio,
+                options: [.mixWithOthers, .defaultToSpeaker, .allowBluetooth]
             )
-            try session.setActive(true)
+            try session.setActive(true, options: .notifyOthersOnDeactivation)
         } catch {
             print("Failed to configure background playback audio session: \(error)")
         }
@@ -46,7 +47,7 @@ struct LiveSubApp: App {
         self.coordinator = coord
         socketServer.delegate = coord
         socketServer.start()
-        print("[LiveSubApp] IPC SocketServer started and coordinator retained.")
+        print("[LiveSubApp] IPC TCP SocketServer started on localhost.")
     }
 }
 
@@ -57,20 +58,22 @@ final class SocketCoordinator: AudioSocketServerDelegate {
         self.speechRecognizer = speechRecognizer
     }
 
-    func audioSocketServer(_ server: AudioSocketServer, didReceivePCMData data: Data) {
+    func audioSocketServer(_ server: AudioSocketServer, didReceivePCMData data: Data, asbd: AudioStreamBasicDescription) {
         Task { @MainActor in
-            speechRecognizer.appendPCMData(data)
+            speechRecognizer.appendPCMData(data, asbd: asbd)
         }
     }
 
     func audioSocketServerDidConnectClient(_ server: AudioSocketServer) {
         Task { @MainActor in
+            speechRecognizer.isConnectedToBroadcast = true
             speechRecognizer.startStreaming()
         }
     }
 
     func audioSocketServerDidDisconnectClient(_ server: AudioSocketServer) {
         Task { @MainActor in
+            speechRecognizer.isConnectedToBroadcast = false
             speechRecognizer.stopStreaming()
         }
     }
