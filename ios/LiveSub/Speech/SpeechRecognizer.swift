@@ -14,7 +14,7 @@ public final class SpeechRecognizer: ObservableObject {
     @Published public var isRecognizing: Bool = false
     @Published public var isConnectedToBroadcast: Bool = false
     @Published public var audioPacketsReceived: Int = 0
-    @Published public var currentLocale: Locale = Locale(identifier: "es-ES")
+    @Published public var currentLocale: Locale
     @Published public var statusMessage: String = "Ready"
     @Published public var isMicMode: Bool = false
 
@@ -27,13 +27,17 @@ public final class SpeechRecognizer: ObservableObject {
     private var shouldKeepRecognizing = false
 
     public init() {
-        updateLocale(currentLocale)
+        let initialCode = TranslationManager.shared.sourceLanguage.code
+        let locale = Locale(identifier: initialCode)
+        self.currentLocale = locale
+        self.speechRecognizer = SFSpeechRecognizer(locale: locale)
         requestPermissions()
     }
 
     public func updateLocale(_ locale: Locale) {
         currentLocale = locale
         speechRecognizer = SFSpeechRecognizer(locale: locale)
+        print("[SpeechRecognizer] Updated speech recognizer to locale: \(locale.identifier)")
         if isRecognizing {
             restartStream()
         }
@@ -63,7 +67,6 @@ public final class SpeechRecognizer: ObservableObject {
         guard let recognizer = speechRecognizer, recognizer.isAvailable else {
             print("[SpeechRecognizer] Recognizer is NOT available for locale \(currentLocale)")
             statusMessage = "Recognizer unavailable for \(currentLocale.identifier)"
-            transcript = "Speech engine unavailable"
             return
         }
 
@@ -73,27 +76,27 @@ public final class SpeechRecognizer: ObservableObject {
 
         if preferOfflineRecognition && recognizer.supportsOnDeviceRecognition {
             request.requiresOnDeviceRecognition = true
-            statusMessage = "Using on-device engine (\(recognizer.locale.identifier))"
+            statusMessage = "Listening on-device (\(recognizer.locale.identifier))"
         } else {
             request.requiresOnDeviceRecognition = false
-            statusMessage = "Using speech engine (\(recognizer.locale.identifier))"
+            statusMessage = "Listening (\(recognizer.locale.identifier))"
         }
 
         self.recognitionRequest = request
         self.isRecognizing = true
-        if transcript.isEmpty || transcript == "Speech engine unavailable" {
-            self.transcript = "Listening for audio..."
-        }
 
         self.recognitionTask = recognizer.recognitionTask(with: request) { [weak self] result, error in
             guard let self = self else { return }
 
             if let result = result {
                 let text = result.bestTranscription.formattedString
-                self.transcript = text
-                self.updateRecentLines(text)
-                // Feed transcription directly to TranslationManager
-                TranslationManager.shared.translate(sourceText: text)
+                let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !trimmed.isEmpty {
+                    self.transcript = trimmed
+                    self.updateRecentLines(trimmed)
+                    // Feed actual recognized speech to TranslationManager
+                    TranslationManager.shared.translate(sourceText: trimmed)
+                }
             }
 
             if let error = error {
@@ -194,7 +197,7 @@ public final class SpeechRecognizer: ObservableObject {
             try engine.start()
             self.audioEngine = engine
             self.isMicMode = true
-            self.statusMessage = "Microphone mode active"
+            self.statusMessage = "Microphone active (\(currentLocale.identifier))"
         } catch {
             print("[SpeechRecognizer] Failed to start audio engine: \(error)")
             self.statusMessage = "Mic error: \(error.localizedDescription)"
@@ -210,7 +213,6 @@ public final class SpeechRecognizer: ObservableObject {
             self.audioEngine = nil
         }
 
-        // Restore playback-only audio session to immediately dismiss iOS orange mic indicator
         do {
             let session = AVAudioSession.sharedInstance()
             try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
@@ -220,7 +222,7 @@ public final class SpeechRecognizer: ObservableObject {
         }
 
         stopStreaming()
-        self.statusMessage = "Microphone mode stopped (Ready)"
+        self.statusMessage = "Microphone stopped (Ready)"
     }
 
     public func clear() {

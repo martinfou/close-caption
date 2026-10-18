@@ -340,7 +340,11 @@ public struct ContentView: View {
                     ? translationManager.translatedText
                     : speechRecognizer.transcript
 
-                Text(displayText.isEmpty ? "Play a video or tap 'Test via Microphone' to see live translated subtitles..." : displayText)
+                let placeholder = speechRecognizer.isRecognizing
+                    ? "🎙️ Listening for \(translationManager.sourceLanguage.name) audio... speak now"
+                    : "Tap 'Test via Microphone' or broadcast video to begin..."
+
+                Text(displayText.isEmpty ? placeholder : displayText)
                     .font(.system(size: CGFloat(fontSize), weight: .semibold, design: .rounded))
                     .foregroundColor(displayText.isEmpty ? .gray.opacity(0.7) : (hasTranslation ? .cyan : .white))
                     .frame(maxWidth: .infinity, alignment: .leading)
