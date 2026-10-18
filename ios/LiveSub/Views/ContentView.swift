@@ -71,7 +71,11 @@ public struct ContentView: View {
             }
             .sheet(isPresented: $showSettings) { settingsSheet }
             .onAppear { checkPack(prompt: false) }
-            .onReceive(NotificationCenter.default.publisher(for: .packChanged)) { _ in checkPack(prompt: false) }
+            .onReceive(NotificationCenter.default.publisher(for: .packChanged)) { _ in
+                checkPack(prompt: false)
+                translationManager.resetFailures()
+                translationManager.translate(sourceText: speechRecognizer.transcript)
+            }
             .alert("Download language pack?", isPresented: $showDownloadPrompt) {
                 Button("Download") { downloadTrigger += 1 }
                 Button("Not now", role: .cancel) {}
@@ -115,6 +119,7 @@ public struct ContentView: View {
                     source: translationManager.sourceLanguage.langCode,
                     target: translationManager.targetLanguage.langCode
                 )
+                .id("\(translationManager.sourceLanguage.langCode)->\(translationManager.targetLanguage.langCode)")
             }
             #endif
         }
@@ -197,11 +202,11 @@ public struct ContentView: View {
                     .foregroundStyle(shown.isEmpty ? .tertiary : .primary)
                     .frame(maxWidth: .infinity, minHeight: 65, alignment: .topLeading)
 
-                if hasTranslation, !transcript.isEmpty {
+                if hasTranslation, translationManager.showOriginalInPiP, !transcript.isEmpty {
                     Text(transcript)
                         .font(.footnote)
                         .foregroundStyle(.tertiary)
-                        .lineLimit(2)
+                        .lineLimit(1)
                 }
             }
             .padding(.vertical, 4)
@@ -348,7 +353,7 @@ private struct LiveTranslationHost: View {
                 source: Locale.Language(identifier: source),
                 target: Locale.Language(identifier: target)
             ) { session in
-                await TranslationManager.shared.runSession(session)
+                await TranslationManager.shared.runSession(session, source: source, target: target)
             }
     }
 }

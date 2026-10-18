@@ -102,7 +102,7 @@ public final class TranslationManager: ObservableObject {
         self.sourceLanguage = Self.supportedLanguages.first { $0.code == src } ?? Self.supportedLanguages[0]
         self.targetLanguage = Self.supportedLanguages.first { $0.code == tgt } ?? Self.supportedLanguages[2]
         self.isTranslationEnabled = defaults.object(forKey: "isTranslationEnabled") as? Bool ?? true
-        self.showOriginalInPiP = defaults.object(forKey: "showOriginalInPiP") as? Bool ?? true
+        self.showOriginalInPiP = defaults.object(forKey: "showOriginalInPiP") as? Bool ?? false
         let savedDwell = defaults.double(forKey: "subtitleDwellSeconds")
         self.dwellSeconds = savedDwell > 0 ? savedDwell : 3.0
     }
@@ -127,6 +127,10 @@ public final class TranslationManager: ObservableObject {
         setTarget(s)
     }
 
+    public func resetFailures() {
+        appleFailures = 0
+    }
+
     /// Language changed: discard stale work and the old translation.
     private func resetPending() {
         generation += 1
@@ -136,6 +140,11 @@ public final class TranslationManager: ObservableObject {
         pendingOnline = nil
         translatedText = ""
         appleFailures = 0
+        appleReady = false
+        appleContinuation?.finish()
+        appleContinuation = nil
+        onlineTask?.cancel()
+        onlineTask = nil
     }
 
     private var clearDwellTask: Task<Void, Never>?
@@ -183,12 +192,15 @@ public final class TranslationManager: ObservableObject {
 
     #if canImport(Translation)
     @available(iOS 18.0, *)
-    public func runSession(_ session: TranslationSession) async {
+    public func runSession(_ session: TranslationSession, source: String, target: String) async {
+        guard source == sourceLanguage.langCode && target == targetLanguage.langCode else { return }
+
         var cont: AsyncStream<String>.Continuation!
         let stream = AsyncStream<String>(bufferingPolicy: .bufferingNewest(1)) { cont = $0 }
         appleContinuation?.finish()
         appleContinuation = cont
         appleReady = true
+        appleFailures = 0
         defer {
             appleReady = false
             cont.finish()
@@ -228,7 +240,7 @@ public final class TranslationManager: ObservableObject {
         onlineTask = Task { @MainActor [weak self] in
             guard let self else { return }
             while self.pendingOnline != nil {
-                let wait = 0.5 - Date().timeIntervalSince(self.lastOnlineTime)
+                let wait = 0.3 - Date().timeIntervalSince(self.lastOnlineTime)
                 if wait > 0 { try? await Task.sleep(nanoseconds: UInt64(wait * 1_000_000_000)) }
 
                 guard let text = self.pendingOnline else { break }
@@ -259,9 +271,16 @@ public final class TranslationManager: ObservableObject {
     }
 
     private nonisolated static func fetchOnline(text: String, from: String, to: String) async -> String? {
+        if let googleResult = await fetchGoogle(text: text, from: from, to: to) {
+            return googleResult
+        }
+        return await fetchMyMemory(text: text, from: from, to: to)
+    }
+
+    private nonisolated static func fetchGoogle(text: String, from: String, to: String) async -> String? {
         var comps = URLComponents(string: "https://translate.googleapis.com/translate_a/single")!
         comps.queryItems = [
-            URLQueryItem(name: "client", value: "gtx"),
+            URLQueryItem(name: "client", value: "dict-chrome-ex"),
             URLQueryItem(name: "sl", value: from),
             URLQueryItem(name: "tl", value: to),
             URLQueryItem(name: "dt", value: "t"),
@@ -269,7 +288,8 @@ public final class TranslationManager: ObservableObject {
         ]
         guard let url = comps.url else { return nil }
         var request = URLRequest(url: url)
-        request.timeoutInterval = 6
+        request.setValue("Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko)", forHTTPHeaderField: "User-Agent")
+        request.timeoutInterval = 4
 
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
@@ -278,6 +298,29 @@ public final class TranslationManager: ObservableObject {
                   let sentences = json.first as? [[Any]] else { return nil }
             let translated = sentences.compactMap { $0.first as? String }.joined()
             return translated.isEmpty ? nil : translated
+        } catch {
+            return nil
+        }
+    }
+
+    private nonisolated static func fetchMyMemory(text: String, from: String, to: String) async -> String? {
+        var comps = URLComponents(string: "https://api.mymemory.translated.net/get")!
+        comps.queryItems = [
+            URLQueryItem(name: "q", value: text),
+            URLQueryItem(name: "langpair", value: "\(from)|\(to)")
+        ]
+        guard let url = comps.url else { return nil }
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 4
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard (response as? HTTPURLResponse)?.statusCode == 200,
+                  let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let respData = json["responseData"] as? [String: Any],
+                  let translated = respData["translatedText"] as? String else { return nil }
+            let clean = translated.trimmingCharacters(in: .whitespacesAndNewlines)
+            return clean.isEmpty ? nil : clean
         } catch {
             return nil
         }
