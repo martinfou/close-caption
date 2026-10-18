@@ -45,10 +45,10 @@ public final class TranslationManager: ObservableObject {
         AppLanguage(code: "nl-NL", langCode: "nl", name: "Nederlands", flag: "🇳🇱")
     ]
 
-    @AppStorage("sourceLanguageCode") public var sourceCode: String = "es-ES" {
+    @AppStorage("sourceLanguageCode") public var sourceCode: String = "en-US" {
         didSet { updateSelectedLanguages() }
     }
-    @AppStorage("targetLanguageCode") public var targetCode: String = "en-US" {
+    @AppStorage("targetLanguageCode") public var targetCode: String = "fr-FR" {
         didSet { updateSelectedLanguages() }
     }
     @AppStorage("isTranslationEnabled") public var isTranslationEnabled: Bool = true
@@ -73,8 +73,8 @@ public final class TranslationManager: ObservableObject {
     private var lastTranslatedInput: String = ""
 
     public init() {
-        let initialSource = Self.supportedLanguages.first { $0.code == "es-ES" } ?? Self.supportedLanguages[1]
-        let initialTarget = Self.supportedLanguages.first { $0.code == "en-US" } ?? Self.supportedLanguages[0]
+        let initialSource = Self.supportedLanguages.first { $0.code == "en-US" } ?? Self.supportedLanguages[0]
+        let initialTarget = Self.supportedLanguages.first { $0.code == "fr-FR" } ?? Self.supportedLanguages[2]
         self.sourceLanguage = initialSource
         self.targetLanguage = initialTarget
         updateSelectedLanguages()
@@ -134,7 +134,9 @@ public final class TranslationManager: ObservableObject {
         translationTask?.cancel()
         translationTask = Task { @MainActor in
             isTranslating = true
+            translationStatus = "Translating \(sourceLanguage.langCode.uppercased()) ➔ \(targetLanguage.langCode.uppercased())..."
 
+            // 1. Try Apple on-device TranslationSession first if available
             #if canImport(Translation)
             if #available(iOS 18.0, *) {
                 if let session = activeSession {
@@ -144,19 +146,57 @@ public final class TranslationManager: ObservableObject {
                             self.translatedText = response.targetText
                             self.translationStatus = "Live translated"
                             self.isTranslating = false
+                            return
                         }
-                        return
                     } catch {
-                        print("[TranslationManager] Session translate error: \(error)")
+                        print("[TranslationManager] Apple session error: \(error), falling back to instant translator...")
                     }
                 }
             }
             #endif
 
+            // 2. High-speed fallback translator (handles any language pair instantly without waiting for model downloads)
+            let src = sourceLanguage.langCode
+            let tgt = targetLanguage.langCode
+            if let result = await fetchOnlineTranslation(text: trimmed, from: src, to: tgt) {
+                if !Task.isCancelled {
+                    self.translatedText = result
+                    self.translationStatus = "Live translated"
+                    self.isTranslating = false
+                    return
+                }
+            }
+
+            // 3. Fallback
             if !Task.isCancelled {
                 self.translatedText = trimmed
                 self.isTranslating = false
             }
         }
+    }
+
+    private func fetchOnlineTranslation(text: String, from: String, to: String) async -> String? {
+        guard let encoded = text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else { return nil }
+        let urlString = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=\(from)&tl=\(to)&dt=t&q=\(encoded)"
+        guard let url = URL(string: urlString) else { return nil }
+
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 3.5
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard (response as? HTTPURLResponse)?.statusCode == 200 else { return nil }
+
+            if let json = try JSONSerialization.jsonObject(with: data) as? [Any],
+               let sentences = json.first as? [[Any]] {
+                let translated = sentences.compactMap { $0.first as? String }.joined()
+                if !translated.isEmpty {
+                    return translated
+                }
+            }
+        } catch {
+            print("[TranslationManager] Online translation error: \(error)")
+        }
+        return nil
     }
 }

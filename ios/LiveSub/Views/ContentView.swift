@@ -50,6 +50,15 @@ public struct ContentView: View {
             .navigationTitle("LiveSub")
             .navigationBarTitleDisplayMode(.inline)
             .modifier(TranslationTaskModifier())
+            .onChange(of: speechRecognizer.transcript) { newText in
+                translationManager.translate(sourceText: newText)
+            }
+            .onChange(of: translationManager.targetLanguage) { _ in
+                translationManager.translate(sourceText: speechRecognizer.transcript)
+            }
+            .onChange(of: translationManager.sourceLanguage) { _ in
+                translationManager.translate(sourceText: speechRecognizer.transcript)
+            }
         }
     }
 
@@ -148,6 +157,7 @@ public struct ContentView: View {
                         Button(action: {
                             translationManager.setSource(lang)
                             speechRecognizer.updateLocale(Locale(identifier: lang.code))
+                            translationManager.translate(sourceText: speechRecognizer.transcript)
                         }) {
                             HStack {
                                 Text("\(lang.flag) \(lang.name)")
@@ -186,6 +196,7 @@ public struct ContentView: View {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                         translationManager.swapLanguages()
                         speechRecognizer.updateLocale(Locale(identifier: translationManager.sourceLanguage.code))
+                        translationManager.translate(sourceText: speechRecognizer.transcript)
                     }
                 }) {
                     ZStack {
@@ -203,6 +214,7 @@ public struct ContentView: View {
                     ForEach(TranslationManager.supportedLanguages) { lang in
                         Button(action: {
                             translationManager.setTarget(lang)
+                            translationManager.translate(sourceText: speechRecognizer.transcript)
                         }) {
                             HStack {
                                 Text("\(lang.flag) \(lang.name)")
@@ -253,7 +265,7 @@ public struct ContentView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Label(
-                    translationManager.isTranslationEnabled ? "Translated Subtitles" : "Live Captions",
+                    translationManager.isTranslationEnabled && translationManager.sourceLanguage.langCode != translationManager.targetLanguage.langCode ? "Translated Subtitles (\(translationManager.targetLanguage.flag))" : "Live Captions",
                     systemImage: "text.bubble.fill"
                 )
                 .font(.subheadline.bold())
@@ -275,20 +287,21 @@ public struct ContentView: View {
 
             VStack(alignment: .leading, spacing: 8) {
                 // Primary Text: Translated Subtitle
-                let displayText = translationManager.isTranslationEnabled && !translationManager.translatedText.isEmpty
+                let hasTranslation = translationManager.isTranslationEnabled &&
+                    !translationManager.translatedText.isEmpty &&
+                    translationManager.sourceLanguage.langCode != translationManager.targetLanguage.langCode
+
+                let displayText = hasTranslation
                     ? translationManager.translatedText
                     : speechRecognizer.transcript
 
                 Text(displayText.isEmpty ? "Play a video or tap 'Test via Microphone' to see live translated subtitles..." : displayText)
                     .font(.system(size: CGFloat(fontSize), weight: .semibold, design: .rounded))
-                    .foregroundColor(displayText.isEmpty ? .gray.opacity(0.7) : .white)
+                    .foregroundColor(displayText.isEmpty ? .gray.opacity(0.7) : (hasTranslation ? .cyan : .white))
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 // Secondary Original Text
-                if translationManager.isTranslationEnabled &&
-                    !translationManager.translatedText.isEmpty &&
-                    !speechRecognizer.transcript.isEmpty &&
-                    translationManager.sourceLanguage.langCode != translationManager.targetLanguage.langCode {
+                if hasTranslation && !speechRecognizer.transcript.isEmpty {
                     Divider().background(Color.white.opacity(0.1))
                     HStack(spacing: 4) {
                         Text("\(translationManager.sourceLanguage.flag) Original:")
