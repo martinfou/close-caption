@@ -328,9 +328,72 @@ h1, h2, h3, h4 {
 .showcase-container {
   margin-top: 60px;
   position: relative;
-  max-width: 1060px;
+  max-width: 1100px;
   margin-left: auto;
   margin-right: auto;
+}
+
+.showcase-grid-dual {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  text-align: left;
+}
+
+@media (max-width: 860px) {
+  .showcase-grid-dual {
+    grid-template-columns: 1fr;
+  }
+}
+
+.showcase-card {
+  background: rgba(18, 20, 29, 0.7);
+  border: 1px solid var(--card-border);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.showcase-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.showcase-card-header {
+  padding: 14px 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.platform-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.platform-pill.apple {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.platform-pill.android {
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
 .showcase-frame {
@@ -344,15 +407,24 @@ h1, h2, h3, h4 {
 
 .showcase-image-wrapper {
   position: relative;
-  border-radius: 20px;
   overflow: hidden;
   background: #000;
 }
 
 .showcase-image-wrapper img {
   width: 100%;
-  height: auto;
+  height: 280px;
+  object-fit: cover;
   display: block;
+}
+
+.download-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 14px;
+  flex-wrap: wrap;
 }
 
 /* Floating Overlay Simulation Badge */

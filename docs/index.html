@@ -51,7 +51,10 @@
         <li><a href="#faq">FAQ</a></li>
       </ul>
 
-      <a href="#waitlist" class="btn btn-primary">Join TestFlight</a>
+      <div style="display: flex; gap: 8px;">
+        <a href="https://github.com/martinfou/live-sub/releases/latest" class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.85rem;">Android APK</a>
+        <a href="#waitlist" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.85rem;">iOS Beta</a>
+      </div>
     </div>
   </nav>
 
@@ -59,49 +62,74 @@
   <header class="hero">
     <div class="container">
       <div class="hero-pill">
-        <span>Universal Subtitle Overlay for iPad & iPhone</span>
+        <span>Universal Subtitle Overlay for iOS & Android</span>
       </div>
 
       <h1>
         Watch Any Foreign Video with <br>
-        <span class="gradient-text">Live Translated Subtitles</span> on Your iPad.
+        <span class="gradient-text">Live Translated Subtitles</span> on iOS & Android.
       </h1>
 
       <p class="hero-desc">
         Never get stuck with untranslated anime, foreign cinema, or international YouTube clips again.
-        LiveSub listens to your system audio and floats real-time translated subtitles right over any video app.
+        LiveSub captures system playback audio and projects real-time translated subtitles right over any video app—via Picture-in-Picture on iOS and a floating overlay on Android.
       </p>
 
       <div class="hero-cta-wrapper" id="waitlist">
         <form class="waitlist-form">
-          <input type="email" class="waitlist-input" placeholder="Enter your email address..." required>
-          <button type="submit" class="btn btn-primary btn-submit">Get Beta Access</button>
+          <input type="email" class="waitlist-input" placeholder="Enter your email address for iOS TestFlight..." required>
+          <button type="submit" class="btn btn-primary btn-submit">Join iOS Beta</button>
         </form>
+
+        <div class="download-actions">
+          <a href="https://github.com/martinfou/live-sub/releases/latest" class="btn btn-secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download Android APK (Direct)
+          </a>
+        </div>
+
         <div class="hero-specs-bar">
-          <span class="spec-pill">Apple Neural Engine</span>
+          <span class="spec-pill">Apple Neural Engine & Android NPU</span>
           <span class="spec-dot"></span>
-          <span class="spec-pill">Zero-Lag PiP HUD</span>
+          <span class="spec-pill">Zero-Lag Floating Overlay</span>
           <span class="spec-dot"></span>
           <span class="spec-pill">Universal System Audio</span>
         </div>
       </div>
 
-      <!-- Hero Visual Showcase -->
+      <!-- Hero Visual Dual Showcase -->
       <div class="showcase-container">
-        <div class="showcase-frame">
-          <div class="showcase-image-wrapper">
-            <img src="images/overlay_in_action.png" alt="LiveSub floating subtitle overlay in action on iPad" />
-            
-            <!-- Live Simulated Overlay Badge -->
-            <div class="demo-overlay-pill">
-              <div class="demo-lang-tags">
-                <span id="demo-src" class="demo-lang-src">🇯🇵 JA</span>
-                <span class="demo-lang-arrow">➔</span>
-                <span id="demo-tgt" class="demo-lang-tgt">🇺🇸 EN</span>
+        <div class="showcase-grid-dual">
+          <!-- Card 1: iOS / iPadOS -->
+          <div class="showcase-card">
+            <div class="showcase-card-header">
+              <span>Apple iPadOS & iOS</span>
+              <span class="platform-pill apple">Picture-in-Picture HUD</span>
+            </div>
+            <div class="showcase-image-wrapper">
+              <img src="images/ios_livesub_ipad.png" alt="LiveSub floating Picture-in-Picture HUD on iPad translating YouTube" />
+              <!-- Live Simulated Overlay Badge -->
+              <div class="demo-overlay-pill">
+                <div class="demo-lang-tags">
+                  <span id="demo-src" class="demo-lang-src">🇯🇵 JA</span>
+                  <span class="demo-lang-arrow">➔</span>
+                  <span id="demo-tgt" class="demo-lang-tgt">🇺🇸 EN</span>
+                </div>
+                <div id="demo-text" class="demo-sub-text">
+                  “I won’t give up, that’s my ninja way!”
+                </div>
               </div>
-              <div id="demo-text" class="demo-sub-text">
-                “I won’t give up, that’s my ninja way!”
-              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Android -->
+          <div class="showcase-card">
+            <div class="showcase-card-header">
+              <span>Android Phones & Tablets</span>
+              <span class="platform-pill android">Floating Pill Overlay</span>
+            </div>
+            <div class="showcase-image-wrapper">
+              <img src="images/overlay_in_action.png" alt="LiveSub floating system overlay on Android translating video" />
             </div>
           </div>
         </div>
@@ -215,7 +243,7 @@
           <thead>
             <tr>
               <th>Feature</th>
-              <th class="highlight-col">LiveSub (iOS)</th>
+              <th class="highlight-col">LiveSub (iOS & Android)</th>
               <th>Apple Live Captions</th>
               <th>YouTube Auto-Subs</th>
               <th>Chrome Extensions</th>
@@ -230,15 +258,15 @@
               <td><span class="check">✓</span> Yes</td>
             </tr>
             <tr>
-              <td><strong>Works on iPad & iPhone Apps</strong></td>
-              <td class="highlight-col"><span class="check">✓</span> Yes (System-wide)</td>
-              <td><span class="check">✓</span> Yes</td>
+              <td><strong>Works on Mobile Apps (iOS & Android)</strong></td>
+              <td class="highlight-col"><span class="check">✓</span> Yes (Both Platforms)</td>
+              <td><span class="check">✓</span> iOS only (No translation)</td>
               <td><span class="cross">✗</span> YouTube app only</td>
               <td><span class="cross">✗</span> PC / Mac only</td>
             </tr>
             <tr>
               <td><strong>Works Over ANY Video Player</strong></td>
-              <td class="highlight-col"><span class="check">✓</span> Yes (PiP Overlay)</td>
+              <td class="highlight-col"><span class="check">✓</span> Yes (PiP & Floating Pill)</td>
               <td><span class="check">✓</span> Yes</td>
               <td><span class="cross">✗</span> No</td>
               <td><span class="cross">✗</span> Browser only</td>
@@ -324,11 +352,21 @@
       <div class="faq-list">
         <div class="faq-item">
           <button class="faq-question">
-            <span>How does LiveSub capture audio without a jailbreak?</span>
+            <span>Is an Android version available right now?</span>
             <span class="faq-icon">+</span>
           </button>
           <div class="faq-answer">
-            LiveSub uses Apple’s official ReplayKit Broadcast Extension framework combined with local high-speed UNIX socket IPC. When you tap "Start", iOS securely routes the system audio stream directly to the app without needing any modifications or third-party hacks.
+            Yes! While iOS is rolling out via TestFlight beta, our Android edition is available right now for direct install via GitHub Releases. It runs on Android 10+ devices, utilizing native floating pill overlays and system AudioPlaybackCapture.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>How does LiveSub capture audio without a jailbreak or root?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            On iOS/iPadOS, LiveSub uses Apple’s official ReplayKit Broadcast Extension framework and local UNIX socket IPC. On Android, it uses the official AudioPlaybackCapture API introduced in Android 10. Both implementations capture internal media audio cleanly without needing root, jailbreak, or physical microphone capture.
           </div>
         </div>
 
@@ -338,7 +376,7 @@
             <span class="faq-icon">+</span>
           </button>
           <div class="faq-answer">
-            Yes! Because LiveSub floats via Picture-in-Picture, you can switch to any other app—YouTube, Safari, VLC, Files, or streaming platforms—and the subtitle overlay stays visible on top of your content.
+            Yes! Because LiveSub floats via Picture-in-Picture on iOS and a draggable Floating Pill overlay on Android, you can switch to any other app—YouTube, Netflix, VLC, browser, or media players—and the subtitle overlay stays pinned cleanly over your content.
           </div>
         </div>
 
@@ -348,17 +386,17 @@
             <span class="faq-icon">+</span>
           </button>
           <div class="faq-answer">
-            Never. LiveSub is architected specifically around privacy. Speech recognition and Apple Translation run directly on the device using Apple Silicon. No audio buffers or transcripts are ever stored or uploaded to any remote server.
+            Never. LiveSub is architected specifically around privacy. Speech recognition and translation run 100% on-device using local neural models (Apple Silicon on iOS / on-device Whisper on Android). No audio buffers or transcripts are ever stored or uploaded to any remote server.
           </div>
         </div>
 
         <div class="faq-item">
           <button class="faq-question">
-            <span>When can I try the beta?</span>
+            <span>How do I get started?</span>
             <span class="faq-icon">+</span>
           </button>
           <div class="faq-answer">
-            TestFlight invites are rolling out to our waitlist members this week. Enter your email above to claim one of the initial 100 beta spots.
+            On Android, tap <strong>Download APK</strong> to install immediately from GitHub. On iOS/iPadOS, enter your email below to receive an instant invitation to our upcoming TestFlight beta wave.
           </div>
         </div>
       </div>
@@ -370,7 +408,7 @@
     <div class="container">
       <h2 style="font-size: 2.4rem; margin-bottom: 16px;">Ready to watch anything in your language?</h2>
       <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto 36px; font-size: 1.1rem;">
-        Be among the first to experience frictionless real-time video subtitles on iPad & iPhone.
+        Experience frictionless real-time video subtitles on iPad, iPhone, and Android.
       </p>
       <div style="max-width: 500px; margin: 0 auto;">
         <form class="waitlist-form">
