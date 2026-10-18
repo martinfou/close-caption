@@ -18,6 +18,30 @@ public struct ContentView: View {
     @State private var pickerTrigger = 0
     @State private var showSettings = false
     @State private var downloadMessage: String?
+    @State private var showDownloadPrompt = false
+    @State private var packInstalled: Bool?
+
+    /// Checks whether the on-device pack for the selected pair is installed; optionally suggests downloading it.
+    private func checkPack(prompt: Bool) {
+        #if canImport(Translation)
+        guard #available(iOS 18.0, *) else { return }
+        let src = Locale.Language(identifier: translationManager.sourceLanguage.langCode)
+        let tgt = Locale.Language(identifier: translationManager.targetLanguage.langCode)
+        guard translationManager.isActiveTranslation else { packInstalled = nil; return }
+        Task { @MainActor in
+            let status = await LanguageAvailability().status(from: src, to: tgt)
+            switch status {
+            case .installed:
+                packInstalled = true
+            case .supported:
+                packInstalled = false
+                if prompt { showDownloadPrompt = true }
+            @unknown default:
+                packInstalled = nil
+            }
+        }
+        #endif
+    }
 
     private var isLive: Bool { speechRecognizer.isConnectedToBroadcast }
 
@@ -46,14 +70,24 @@ public struct ContentView: View {
                 }
             }
             .sheet(isPresented: $showSettings) { settingsSheet }
+            .onAppear { checkPack(prompt: false) }
+            .onReceive(NotificationCenter.default.publisher(for: .packChanged)) { _ in checkPack(prompt: false) }
+            .alert("Download language pack?", isPresented: $showDownloadPrompt) {
+                Button("Download") { downloadTrigger += 1 }
+                Button("Not now", role: .cancel) {}
+            } message: {
+                Text("\(translationManager.sourceLanguage.name) → \(translationManager.targetLanguage.name) isn't on this iPad yet. Download it for fast, private, offline translation.")
+            }
             .onChange(of: speechRecognizer.transcript) { text in
                 translationManager.translate(sourceText: text)
             }
             .onChange(of: translationManager.sourceLanguage) { lang in
+                checkPack(prompt: true)
                 speechRecognizer.updateLocale(Locale(identifier: lang.code))
                 translationManager.translate(sourceText: speechRecognizer.transcript)
             }
             .onChange(of: translationManager.targetLanguage) { _ in
+                checkPack(prompt: true)
                 translationManager.translate(sourceText: speechRecognizer.transcript)
             }
             .onChange(of: translationManager.isTranslationEnabled) { _ in
@@ -136,6 +170,13 @@ public struct ContentView: View {
             Toggle("Translate", isOn: $translationManager.isTranslationEnabled)
         } header: {
             Text("Languages")
+        } footer: {
+            if packInstalled == false {
+                Button("Offline pack not installed – tap to download") { downloadTrigger += 1 }
+                    .font(.footnote)
+            } else if packInstalled == true {
+                Text("Offline pack installed.")
+            }
         }
     }
 
@@ -306,6 +347,7 @@ private struct DownloadModifier: ViewModifier {
                 do {
                     try await session.prepareTranslation()
                     message = "Language pack is ready for offline use."
+                    NotificationCenter.default.post(name: .packChanged, object: nil)
                 } catch {
                     message = "Couldn't download the language pack: \(error.localizedDescription)"
                 }
@@ -340,3 +382,5 @@ private extension View {
         #endif
     }
 }
+
+extension Notification.Name { static let packChanged = Notification.Name("LiveSubPackChanged") }
