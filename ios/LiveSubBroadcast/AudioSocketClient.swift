@@ -90,9 +90,12 @@ public final class AudioSocketClient {
         let frames = CMSampleBufferGetNumSamples(sampleBuffer)
         guard frames > 0 else { lastFailure = "0 frames"; return nil }
         let channels = max(1, Int(asbd.mChannelsPerFrame))
+        let isBigEndian = (asbd.mFormatFlags & kAudioFormatFlagIsBigEndian) != 0
 
         // Preferred: let CoreMedia copy into an AVAudioPCMBuffer (handles interleaved/planar/float/int).
-        if let format = AVAudioFormat(streamDescription: &asbd),
+        // ReplayKit app audio is big-endian, which AVAudioPCMBuffer can't represent, so use the raw path there.
+        if !isBigEndian,
+           let format = AVAudioFormat(streamDescription: &asbd),
            let pcm = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(frames)) {
             pcm.frameLength = AVAudioFrameCount(frames)
             let status = CMSampleBufferCopyPCMDataIntoAudioBufferList(
@@ -138,16 +141,22 @@ public final class AudioSocketClient {
             let n = min(frames, length / (2 * channels))
             for i in 0..<n {
                 var sum: Int32 = 0
-                for c in 0..<channels { sum += Int32(p[i * channels + c]) }
+                for c in 0..<channels {
+                    let raw = p[i * channels + c]
+                    sum += Int32(isBigEndian ? Int16(bigEndian: raw) : raw)
+                }
                 mono[i] = Int16(clamping: sum / Int32(channels))
             }
             return mono
         } else if asbd.mBitsPerChannel == 32 {
-            let p = UnsafeRawPointer(base).assumingMemoryBound(to: Float32.self)
+            let p = UnsafeRawPointer(base).assumingMemoryBound(to: UInt32.self)
             let n = min(frames, length / (4 * channels))
             for i in 0..<n {
                 var sum: Float = 0
-                for c in 0..<channels { sum += p[i * channels + c] }
+                for c in 0..<channels {
+                    let bits = isBigEndian ? UInt32(bigEndian: p[i * channels + c]) : p[i * channels + c]
+                    sum += Float(bitPattern: bits)
+                }
                 mono[i] = Int16(max(-1, min(1, sum / Float(channels))) * 32767)
             }
             return mono
