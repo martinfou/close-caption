@@ -9,6 +9,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ### 📥 [Download Ready-to-Install APK (GitHub Releases)](https://github.com/martinfou/live-sub/releases/latest)
+### 🌐 [LiveSub Product Landing Page & Beta Waitlist](https://martinfou.github.io/live-sub/)
 
 </div>
 

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Primary Meta Tags -->
+  <title>LiveSub — Universal Live Subtitles & Real-Time Translation for iPad & iPhone</title>
+  <meta name="title" content="LiveSub — Universal Live Subtitles & Real-Time Translation for iPad & iPhone">
+  <meta name="description" content="Watch any foreign movie, anime, or YouTube video with real-time translated subtitles floating over your screen on iOS & iPadOS. 100% on-device and private.">
+  <meta name="keywords" content="live subtitles, translate video, ipad subtitles, anime subtitles, picture in picture subtitles, video translator ios">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://martinfou.github.io/live-sub/">
+  <meta property="og:title" content="LiveSub — Universal Live Subtitles for iPad & iPhone">
+  <meta property="og:description" content="Watch any foreign movie, anime, or YouTube video with real-time translated subtitles floating over your screen. 100% on-device and private.">
+  <meta property="og:image" content="images/overlay_in_action.png">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:title" content="LiveSub — Universal Live Subtitles for iPad & iPhone">
+  <meta property="twitter:description" content="Watch any foreign movie, anime, or YouTube video with real-time translated subtitles floating over your screen.">
+  <meta property="twitter:image" content="images/overlay_in_action.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container nav-content">
+      <a href="#" class="brand">
+        <div class="brand-icon">💬</div>
+        <span>LiveSub</span>
+        <span class="live-badge">Beta</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#how-it-works">How It Works</a></li>
+        <li><a href="#comparison">Comparison</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#faq">FAQ</a></li>
+      </ul>
+
+      <a href="#waitlist" class="btn btn-primary">Join TestFlight</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="hero">
+    <div class="container">
+      <div class="hero-pill">
+        <span>✨ The First Universal Subtitle Overlay for iOS</span>
+      </div>
+
+      <h1>
+        Watch Any Foreign Video with <br>
+        <span class="gradient-text">Live Translated Subtitles</span> on Your iPad.
+      </h1>
+
+      <p class="hero-desc">
+        Never get stuck with untranslated anime, foreign cinema, or international YouTube clips again.
+        LiveSub listens to your system audio and floats real-time translated subtitles right over any video app.
+      </p>
+
+      <div class="hero-cta-wrapper" id="waitlist">
+        <form class="waitlist-form">
+          <input type="email" class="waitlist-input" placeholder="Enter your email address..." required>
+          <button type="submit" class="btn btn-primary btn-submit">Get Beta Access</button>
+        </form>
+        <div class="hero-proof">
+          <span>🔒 100% On-Device Neural Processing</span>
+          <span>•</span>
+          <span>⚡ Instant PiP Overlay</span>
+          <span>•</span>
+          <span>🚀 Works with Any Video</span>
+        </div>
+      </div>
+
+      <!-- Hero Visual Showcase -->
+      <div class="showcase-container">
+        <div class="showcase-frame">
+          <div class="showcase-image-wrapper">
+            <img src="images/overlay_in_action.png" alt="LiveSub floating subtitle overlay in action on iPad" />
+            
+            <!-- Live Simulated Overlay Badge -->
+            <div class="demo-overlay-pill">
+              <div class="demo-lang-tags">
+                <span id="demo-src" class="demo-lang-src">🇯🇵 JA</span>
+                <span class="demo-lang-arrow">➔</span>
+                <span id="demo-tgt" class="demo-lang-tgt">🇺🇸 EN</span>
+              </div>
+              <div id="demo-text" class="demo-sub-text">
+                “I won’t give up, that’s my ninja way!”
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Problem / Solution Section -->
+  <section class="section" id="how-it-works">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">The Problem & The Fix</div>
+        <h2 class="section-title">Why has nobody solved this on mobile?</h2>
+        <p class="section-desc">
+          On Mac and PC, Chrome extensions let you translate subtitles. But on iPad and iPhone, browsers and video apps are locked down. Apple’s built-in Live Captions only transcribe words—they don’t translate them into your language.
+        </p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🪟</div>
+          <h3>Universal Floating PiP</h3>
+          <p>
+            Using native iOS Picture-in-Picture, your subtitles float seamlessly on top of YouTube, VLC, Crunchyroll, or Safari. Drag it anywhere or resize on the fly.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🛡️</div>
+          <h3>100% Private & On-Device</h3>
+          <p>
+            Powered by Apple’s Neural Engine and offline language packs. Not a single byte of your audio is uploaded to the cloud or stored on external servers.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">⏱️</div>
+          <h3>Intelligent Reading Dwell</h3>
+          <p>
+            Fast dialogues don’t vanish in a blink. LiveSub’s configurable reading buffer holds each translated sentence steady so you finish reading comfortably.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid -->
+  <section class="section" id="features" style="background: var(--bg-secondary);">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Key Capabilities</div>
+        <h2 class="section-title">Built for serious video lovers</h2>
+        <p class="section-desc">
+          Engineered for zero lag, pristine typography, and effortless cross-app viewing.
+        </p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🌍</div>
+          <h3>12+ Major Languages</h3>
+          <p>
+            Instant translation between English, French, Spanish, German, Japanese, Chinese, Korean, Italian, Portuguese, Russian, Arabic, and Dutch.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📶</div>
+          <h3>Works Completely Offline</h3>
+          <p>
+            Download your favorite language pair directly to your iPad once. Enjoy fully translated movies on flights, trains, or anywhere without Wi-Fi.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🎛️</div>
+          <h3>Apple-Native Inset Design</h3>
+          <p>
+            Customizable font sizes, background translucency, and single-line clean display mode designed to feel right at home on iOS 18.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison Table -->
+  <section class="section" id="comparison">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Head-to-Head</div>
+        <h2 class="section-title">How LiveSub compares</h2>
+        <p class="section-desc">
+          Compare LiveSub to standard transcription tools and browser extensions.
+        </p>
+      </div>
+
+      <div class="comparison-wrapper">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th class="highlight-col">LiveSub (iOS)</th>
+              <th>Apple Live Captions</th>
+              <th>YouTube Auto-Subs</th>
+              <th>Chrome Extensions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Real-Time Translation</strong></td>
+              <td class="highlight-col"><span class="check">✓</span> Yes (12+ Langs)</td>
+              <td><span class="cross">✗</span> Transcription only</td>
+              <td><span class="check">✓</span> YouTube only</td>
+              <td><span class="check">✓</span> Yes</td>
+            </tr>
+            <tr>
+              <td><strong>Works on iPad & iPhone Apps</strong></td>
+              <td class="highlight-col"><span class="check">✓</span> Yes (System-wide)</td>
+              <td><span class="check">✓</span> Yes</td>
+              <td><span class="cross">✗</span> YouTube app only</td>
+              <td><span class="cross">✗</span> PC / Mac only</td>
+            </tr>
+            <tr>
+              <td><strong>Works Over ANY Video Player</strong></td>
+              <td class="highlight-col"><span class="check">✓</span> Yes (PiP Overlay)</td>
+              <td><span class="check">✓</span> Yes</td>
+              <td><span class="cross">✗</span> No</td>
+              <td><span class="cross">✗</span> Browser only</td>
+            </tr>
+            <tr>
+              <td><strong>100% Private / Offline</strong></td>
+              <td class="highlight-col"><span class="check">✓</span> Yes (On-Device)</td>
+              <td><span class="check">✓</span> Yes</td>
+              <td><span class="cross">✗</span> Cloud processed</td>
+              <td><span class="cross">✗</span> Varies</td>
+            </tr>
+            <tr>
+              <td><strong>Intelligent Reading Buffer</strong></td>
+              <td class="highlight-col"><span class="check">✓</span> Yes (Custom dwell)</td>
+              <td><span class="cross">✗</span> No</td>
+              <td><span class="cross">✗</span> No</td>
+              <td><span class="cross">✗</span> Rare</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section class="section" id="pricing" style="background: var(--bg-secondary);">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Simple & Honest Pricing</div>
+        <h2 class="section-title">Start free. Upgrade when you’re hooked.</h2>
+        <p class="section-desc">
+          Enjoy free daily subtitles forever, or unlock unlimited marathon viewing with LiveSub Pro.
+        </p>
+      </div>
+
+      <div class="pricing-grid">
+        <!-- Free Tier -->
+        <div class="pricing-card">
+          <h3>LiveSub Free</h3>
+          <p style="color: var(--text-muted); font-size: 0.95rem;">Perfect for casual video clips & shorts</p>
+          <div class="pricing-price">$0 <span>/ forever</span></div>
+
+          <ul class="pricing-features">
+            <li><span class="check">✓</span> 30 minutes daily live translation</li>
+            <li><span class="check">✓</span> Floating Picture-in-Picture overlay</li>
+            <li><span class="check">✓</span> All 12 supported languages</li>
+            <li><span class="check">✓</span> 100% on-device & private</li>
+            <li><span class="check">✓</span> Zero third-party ads</li>
+          </ul>
+
+          <a href="#waitlist" class="btn btn-secondary">Get Started Free</a>
+        </div>
+
+        <!-- Pro Tier -->
+        <div class="pricing-card featured">
+          <div class="pricing-tag">Most Popular</div>
+          <h3>LiveSub Pro</h3>
+          <p style="color: var(--text-muted); font-size: 0.95rem;">For anime marathons & full-length movies</p>
+          <div class="pricing-price">$4.99 <span>/ month</span></div>
+
+          <ul class="pricing-features">
+            <li><span class="check">✓</span> <strong>Unlimited</strong> daily viewing & translation</li>
+            <li><span class="check">✓</span> Download offline language packs</li>
+            <li><span class="check">✓</span> Adjustable subtitle linger & dwell buffer</li>
+            <li><span class="check">✓</span> Custom font sizes & translucent glass styles</li>
+            <li><span class="check">✓</span> Priority TestFlight & feature updates</li>
+          </ul>
+
+          <a href="#waitlist" class="btn btn-primary">Join Pro Waitlist</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section class="section" id="faq">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Frequently Asked Questions</div>
+        <h2 class="section-title">Got questions? We’ve got answers.</h2>
+      </div>
+
+      <div class="faq-list">
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>How does LiveSub capture audio without a jailbreak?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            LiveSub uses Apple’s official ReplayKit Broadcast Extension framework combined with local high-speed UNIX socket IPC. When you tap "Start", iOS securely routes the system audio stream directly to the app without needing any modifications or third-party hacks.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>Does it work with YouTube, Netflix, and local video files?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            Yes! Because LiveSub floats via Picture-in-Picture, you can switch to any other app—YouTube, Safari, VLC, Files, or streaming platforms—and the subtitle overlay stays visible on top of your content.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>Is my audio or speech recorded?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            Never. LiveSub is architected specifically around privacy. Speech recognition and Apple Translation run directly on the device using Apple Silicon. No audio buffers or transcripts are ever stored or uploaded to any remote server.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>When can I try the beta?</span>
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            TestFlight invites are rolling out to our waitlist members this week. Enter your email above to claim one of the initial 100 beta spots.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bottom CTA -->
+  <section class="bottom-cta">
+    <div class="container">
+      <h2 style="font-size: 2.4rem; margin-bottom: 16px;">Ready to watch anything in your language?</h2>
+      <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto 36px; font-size: 1.1rem;">
+        Be among the first to experience frictionless real-time video subtitles on iPad & iPhone.
+      </p>
+      <div style="max-width: 500px; margin: 0 auto;">
+        <form class="waitlist-form">
+          <input type="email" class="waitlist-input" placeholder="Enter your email address..." required>
+          <button type="submit" class="btn btn-primary btn-submit">Get Early Access</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p style="margin-bottom: 8px;">© 2026 LiveSub. All rights reserved. Built for private, universal on-device subtitles.</p>
+      <p style="font-size: 0.8rem; color: var(--text-muted);">
+        Apple, iPad, iPhone, and ReplayKit are trademarks of Apple Inc.
+      </p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
