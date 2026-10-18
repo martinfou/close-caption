@@ -102,54 +102,146 @@ app/build/outputs/apk/debug/app-debug.apk
 
 ---
 
-## 🏗️ Architecture & Data Flow
+## 🏗️ Architecture & Technical Specifications
+
+LiveSub implements a modular, reactive streaming architecture optimized for sub-second latency on both platforms.
+
+---
+
+### 🍎 iOS & iPadOS Architecture
+
+On iOS, audio capture must bypass sandbox isolation between the ReplayKit extension process and the main app runtime. LiveSub employs a local TCP loopback IPC mechanism with zero-copy stream processing.
 
 ```mermaid
 flowchart TD
-    subgraph AudioSources["🔊 Audio Sources"]
-        Media["System Media Playback\n(YouTube, Safari, Podcasts)"]
-        Mic["Hardware Microphone\n(Direct Input Fallback)"]
+    subgraph MediaLayer["1. Audio Generation & Capture"]
+        Media["System Media Playback\n(YouTube, Safari, Netflix, Apps)"]
+        Mic["Microphone Fallback\n(AVAudioEngine / 16kHz Mono)"]
+        Ext["LiveSubBroadcast Extension\n(RPBroadcastSampleHandler)"]
+        Media -->|"ReplayKit audioApp\n44.1kHz Stereo Int16"| Ext
     end
 
-    subgraph iOSPipeline["🍎 iOS / iPadOS Pipeline"]
-        Ext["LiveSubBroadcast Extension\n(ReplayKit RPSampleBufferType.audioApp)"]
-        TCP["TCP Socket Server\n(127.0.0.1:19834)"]
-        PCM["AudioPCMUtils\n(Big-Endian Decode & Mono Downmix)"]
-        Speech["SpeechRecognizer\n(Apple SFSpeechRecognizer)"]
-        Trans["TranslationManager\n(On-device TranslationSession / Fallback)"]
-        PiP["PiPManager\n(AVPictureInPictureVideoCallViewController)"]
-        Overlay["SubtitleOverlayView\n(Dual-Language Floating HUD)"]
-
-        Media --> Ext
-        Ext -->|"Mono Int16 PCM\nover TCP"| TCP
-        TCP --> PCM
-        PCM --> Speech
-        Mic -.->|"AVAudioEngine"| Speech
-        Speech -->|"Source Transcript"| Trans
-        Trans -->|"Translated Subtitles"| Overlay
-        PiP -.->|"Presents Floating Window"| Overlay
+    subgraph IPCLayer["2. Inter-Process Communication (IPC)"]
+        ExtClient["AudioSocketClient\n(Network.framework / NWConnection)"]
+        TCP["TCP Loopback Socket\n(127.0.0.1:19834)"]
+        AppServer["AudioSocketServer\n(NWListener / Dispatch Queue)"]
+        
+        Ext -->|"Big-Endian to Little-Endian\nStereo downmixed to Mono"| ExtClient
+        ExtClient -->|"4-byte Len + ASBD + Int16 Payload"| TCP
+        TCP --> AppServer
     end
 
-    subgraph AndroidPipeline["🤖 Android Pipeline"]
-        Capture["AudioPlaybackCapture\n(MediaProjection API)"]
-        ASR["SpeechRecognizer\n(Android Speech Engine)"]
-        MLKit["Google ML Kit Translate\n(Offline Neural Models)"]
-        HUD["System Floating Pill\n(WindowManager Overlay)"]
+    subgraph ProcessingLayer["3. Pipeline & ML Engines"]
+        PCMUtils["AudioPCMUtils\n(Int16 to Float32 AVAudioPCMBuffer)"]
+        ASR["SpeechRecognizer\n(Apple SFSpeechRecognizer / Locale Aware)"]
+        KeepAlive["BackgroundKeepAlive\n(AVAudioPlayer Silent Loop / .mixWithOthers)"]
+        TransMgr["TranslationManager\n(LanguageAvailability Check & Throttled Queue)"]
+        AppleTrans["Apple TranslationSession\n(iOS 18+ On-Device Neural Models)"]
+        OnlineFallback["Google GTX API\n(Online Fallback Engine)"]
 
-        Media --> Capture
-        Capture --> ASR
-        ASR -->|"Source Text"| MLKit
-        MLKit -->|"Translated Text"| HUD
+        AppServer --> PCMUtils
+        PCMUtils --> ASR
+        Mic -.-> ASR
+        KeepAlive -.->|"Prevents App Suspension"| AppServer
+        ASR -->|"Continuous Streaming Text"| TransMgr
+        TransMgr -->|"On-Device Priority"| AppleTrans
+        TransMgr -.->|"Network Fallback"| OnlineFallback
     end
 
-    classDef source fill:#2A2D34,stroke:#4E5D6C,stroke-width:1px,color:#fff;
-    classDef ios fill:#1E293B,stroke:#38BDF8,stroke-width:2px,color:#fff;
-    classDef android fill:#143026,stroke:#34D399,stroke-width:2px,color:#fff;
+    subgraph PresentationLayer["4. UI & Floating Overlay"]
+        TransMgr -->|"Translated Subtitles"| SubtitleOverlay["SubtitleOverlayView\n(Dual-Language Display)"]
+        PiPMgr["PiPManager\n(AVPictureInPictureVideoCallViewController)"]
+        MainUI["LiveSub App Dashboard\n(SwiftUI / Native Inset Grouped)"]
 
-    class Media,Mic source;
-    class Ext,TCP,PCM,Speech,Trans,PiP,Overlay ios;
-    class Capture,ASR,MLKit,HUD android;
+        PiPMgr -->|"Renders floating HUD"| SubtitleOverlay
+        MainUI -->|"Controls, Language Pair, Diagnostics"| TransMgr
+    end
+
+    classDef media fill:#1E293B,stroke:#64748B,stroke-width:1px,color:#fff;
+    classDef ipc fill:#0F172A,stroke:#38BDF8,stroke-width:2px,color:#fff;
+    classDef engine fill:#1A2333,stroke:#818CF8,stroke-width:2px,color:#fff;
+    classDef ui fill:#092635,stroke:#2DD4BF,stroke-width:2px,color:#fff;
+
+    class Media,Mic,Ext media;
+    class ExtClient,TCP,AppServer ipc;
+    class PCMUtils,ASR,KeepAlive,TransMgr,AppleTrans,OnlineFallback engine;
+    class SubtitleOverlay,PiPMgr,MainUI ui;
 ```
+
+#### Key iOS Components
+- **`LiveSubBroadcast` (`LiveSubBroadcast/AudioSocketClient.swift`):** ReplayKit extension handling system audio buffers. Detects big-endian 44.1 kHz audio, byte-swaps, and downmixes to mono before streaming over TCP.
+- **`AudioSocketServer` (`LiveSub/IPC/AudioSocketServer.swift`):** High-throughput, non-blocking TCP server using Apple's `Network.framework` running on loopback port `19834`.
+- **`BackgroundKeepAlive` (`LiveSub/App/BackgroundKeepAlive.swift`):** Silent looping audio background worker configured with `AVAudioSessionCategoryPlayback` and `.mixWithOthers` ensuring the socket server remains active while backgrounded.
+- **`TranslationManager` (`LiveSub/Translation/TranslationManager.swift`):** Manages multi-language translation. Inspects `LanguageAvailability` for offline model pack status, streams text via `TranslationSession`, and falls back dynamically to online translation if the on-device model is unavailable.
+- **`PiPManager` (`LiveSub/PiP/PiPManager.swift`):** Picture-in-Picture manager leveraging `AVPictureInPictureVideoCallViewController` to render a system-wide floating subtitle HUD.
+
+---
+
+### 🤖 Android Architecture
+
+On Android, audio capture uses the `AudioPlaybackCapture` API backed by a Foreground Service, running directly in-process with hardware-accelerated overlays.
+
+```mermaid
+flowchart TD
+    subgraph AudioCaptureLayer["1. System Media Capture"]
+        Media["Media Audio Playback\n(ExoPlayer, Spotify, YouTube)"]
+        Projection["MediaProjection Token\n(AudioPlaybackCaptureConfiguration)"]
+        AudioRecord["AudioRecord Streaming\n(16kHz, 16-bit Mono PCM)"]
+
+        Media --> Projection
+        Projection --> AudioRecord
+    end
+
+    subgraph ServiceLayer["2. Audio & Ring Buffer Processing"]
+        CaptureService["AudioCaptureService\n(Foreground Service + Notification)"]
+        RingBuffer["AudioRingBuffer\n(Thread-Safe Circular Buffer)"]
+        VAD["VadFilter\n(Voice Activity Detection / Energy Gate)"]
+
+        AudioRecord --> CaptureService
+        CaptureService --> RingBuffer
+        RingBuffer --> VAD
+    end
+
+    subgraph MLPipeline["3. ASR & Neural Translation"]
+        StreamingASR["StreamingAsrProcessor\n(Chunk Aggregator & Finalizer)"]
+        ASREngine["AndroidSpeechRecognizerEngine\n(On-Device Speech Recognition)"]
+        MLKit["MlKitTranslationEngine\n(Google ML Kit Translate)"]
+        ModelMgr["RemoteModelManager\n(Offline Neural Pack Downloader)"]
+
+        VAD -->|"Filtered Audio Chunks"| StreamingASR
+        StreamingASR --> ASREngine
+        ASREngine -->|"Recognized Text"| MLKit
+        ModelMgr -.->|"Preloaded Offline Models"| MLKit
+    end
+
+    subgraph PresentationOverlay["4. Display & Export Layer"]
+        OverlayService["OverlayService\n(WindowManager Floating View)"]
+        FloatingView["Floating Subtitle Pill\n(Draggable & Auto-hiding)"]
+        Exporter["SubtitleHistoryExporter\n(Timestamped .SRT Generator)"]
+
+        MLKit -->|"Translated Text"| OverlayService
+        OverlayService --> FloatingView
+        ASREngine -->|"Source Text"| Exporter
+        MLKit -->|"Target Text"| Exporter
+    end
+
+    classDef androidCapture fill:#143026,stroke:#34D399,stroke-width:1px,color:#fff;
+    classDef androidService fill:#102A43,stroke:#627D98,stroke-width:2px,color:#fff;
+    classDef androidML fill:#241442,stroke:#A78BFA,stroke-width:2px,color:#fff;
+    classDef androidUI fill:#2D1B36,stroke:#F472B6,stroke-width:2px,color:#fff;
+
+    class Media,Projection,AudioRecord androidCapture;
+    class CaptureService,RingBuffer,VAD androidService;
+    class StreamingASR,ASREngine,MLKit,ModelMgr androidML;
+    class OverlayService,FloatingView,Exporter androidUI;
+```
+
+#### Key Android Components
+- **`AudioPlaybackCaptureHelper` (`audio/AudioPlaybackCaptureHelper.kt`):** Configures `AudioPlaybackCaptureConfiguration` matching `USAGE_MEDIA`, `USAGE_GAME`, and `USAGE_UNKNOWN`.
+- **`AudioCaptureService` (`audio/AudioCaptureService.kt`):** Foreground service with `mediaProjection` foreground service type hosting the audio capture loop and ring buffer.
+- **`VadFilter` (`audio/VadFilter.kt`):** Energy-based Voice Activity Detection filtering ambient silence and background noise before feeding the recognizer.
+- **`MlKitTranslationEngine` (`ml/MlKitTranslationEngine.kt`):** Handles on-device neural translation using Google ML Kit with automatic offline model download and lifecycle management.
+- **`OverlayService` (`overlay/OverlayService.kt`):** System overlay drawing a responsive, touch-draggable floating pill using `WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY`.
 
 ---
 
