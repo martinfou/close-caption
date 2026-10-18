@@ -10,6 +10,7 @@
 
 ### 📥 [Download Ready-to-Install APK (GitHub Releases)](https://github.com/martinfou/live-sub/releases/latest)
 ### 🌐 [LiveSub Product Landing Page & Beta Waitlist](https://martinfou.github.io/live-sub/)
+### 📊 [LiveSub Market Analysis & Business Plan](docs/BUSINESS_PLAN.md)
 
 </div>
 
