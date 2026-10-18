@@ -1,4 +1,4 @@
-# LiveSub — On-Device Real-Time Subtitles & Translation for Android
+# LiveSub — On-Device Real-Time Subtitles & Translation (iOS & Android)
 
 > **LiveSub** captures playback audio internally (or via microphone fallback) and displays continuous, real-time translated subtitles in a cinematic, floating overlay on top of any video, game, or stream.
 
@@ -16,6 +16,19 @@
 
 ## 📸 Screenshots
 
+### 🍎 iOS & iPadOS (Picture-in-Picture Floating Subtitles)
+
+<div align="center">
+
+| 🎬 Real-Time Translation Over YouTube (PiP HUD) | ⚙️ LiveSub iOS & iPadOS Dashboard |
+| :---: | :---: |
+| <img src="docs/images/ios_livesub_ipad.png" alt="LiveSub floating PiP translating YouTube video into French" width="380"/> | <img src="docs/images/ios_livesub_dashboard.png" alt="LiveSub iOS Dashboard with Spoken Audio and Subtitle language selectors" width="380"/> |
+| *Floating Picture-in-Picture HUD translating English YouTube podcast audio into French in real-time with dual-line display* | *Language selector (`🇺🇸 ⇄ 🇫🇷`), on-device offline download controls, and live audio packet diagnostics* |
+
+</div>
+
+### 🤖 Android (System Floating Pill Overlay)
+
 <div align="center">
 
 | 🎬 Real-time Translation Overlay (YouTube / Streaming) | ⚙️ Language Pair & Service Dashboard |
@@ -29,41 +42,52 @@
 
 ## ✨ Key Features
 
-- **🎧 Pure Internal Audio Capture:** Captures high-fidelity internal digital PCM streams (Android 10+ `AudioPlaybackCapture`) without ambient noise or requiring loud speaker output.
-- **⚡ Continuous On-Device Speech Recognition:** Streams speech segments directly into Android's offline/online speech recognition engine with automatic sentence finalization.
-- **🌐 100% On-Device Neural Translation:** Powered by Google ML Kit Translate. Models are stored locally on the device — no subscriptions, no cloud latency, completely private.
-- **💊 Cinematic Floating Pill Overlay:**
-  - **Draggable anywhere:** Smooth drag gesture without lag across full display boundaries.
-  - **Bilingual display:** Prominently highlights translated text with original source preview.
-  - **Hardware accelerated:** GPU-rendered through system `WindowManager` with zero jitter.
-  - **Customizable:** Dynamic pinch-to-zoom font scaling, background opacity slider, and quick collapse/expand modes.
-- **🔄 Smart Microphone Fallback:** Seamlessly switches to hardware microphone if internal media capture is restricted by DRM.
+- **🎧 Internal Audio Capture via ReplayKit Broadcast (iOS) & AudioPlaybackCapture (Android):** Captures high-fidelity internal digital PCM streams without ambient noise or requiring loud speaker output.
+- **⚡ Continuous On-Device Speech Recognition:** Streams speech segments directly into Apple SFSpeechRecognizer and Android Speech Recognition with automatic sentence finalization.
+- **🌐 100% On-Device Neural Translation:**
+  - **iOS:** Powered by Apple's native `Translation.framework` (iOS 17.4+ / iOS 18+) with offline model pack downloads and ultra-fast network fallback.
+  - **Android:** Powered by Google ML Kit Translate with offline neural models.
+- **💊 Floating Overlay Subtitles:**
+  - **iOS:** Native Picture-in-Picture (`AVPictureInPictureVideoCallViewController`) floating HUD that stays active over YouTube, Netflix, Podcasts, or any application.
+  - **Android:** Hardware-accelerated system window overlay (`WindowManager`) draggable anywhere across display boundaries.
+- **🔄 Dual-Language Display:** Prominently highlights translated text in bold, with optional original spoken speech displayed underneath.
+- **🎤 Microphone Fallback:** Test via hardware microphone with one tap or fallback if internal media capture is restricted.
 - **📝 SubRip (.SRT) Export:** Automatically tracks and exports session subtitle history into timestamped `.srt` files.
 
 ---
 
-## 🚀 Quick Start (Installation)
+## 🛠️ Build & Run
 
-1. Go to the **[Latest GitHub Release](https://github.com/martinfou/live-sub/releases/latest)**.
-2. Download **`LiveSub-debug.apk`**.
-3. Open the file on your Android device (Android 10+ recommended, Android 13+ for direct pipe playback capture).
-4. Allow installation from unknown sources when prompted.
-5. Open **LiveSub**, grant the overlay and audio permissions, select your language pair, and tap **Démarrer le sous-titrage** !
+### 🍎 iOS / iPadOS Project
+
+#### Prerequisites
+- macOS Sonoma / Sequoia
+- Xcode 16+
+- [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`)
+
+```bash
+cd ios
+
+# Generate Xcode project
+xcodegen generate
+
+# Build for Simulator
+xcodebuild -project LiveSub.xcodeproj -scheme LiveSub -destination 'platform=iOS Simulator,name=iPhone 16 Pro' build
+
+# Or deploy to connected iPad / iPhone
+xcodebuild -project LiveSub.xcodeproj -scheme LiveSub -destination 'id=<DEVICE_UDID>' -allowProvisioningUpdates build
+```
 
 ---
 
-## 🛠️ Build From Source
+### 🤖 Android Project
 
-### Prerequisites
+#### Prerequisites
 - Android Studio Ladybug / Meerkat or Command-Line Tools
 - Android SDK 35 (minSdk 29, targetSdk 35)
 - JDK 17
 
 ```bash
-# Clone the repository
-git clone https://github.com/martinfou/live-sub.git
-cd live-sub
-
 # Run unit tests
 ./gradlew testDebugUnitTest
 
@@ -78,25 +102,25 @@ app/build/outputs/apk/debug/app-debug.apk
 
 ---
 
-## 📄 Architecture Overview
+## 📄 iOS Architecture Overview
 
 ```
-[System Audio / MediaProjection]
-               │
-               ▼
-     [AudioCaptureService] ── (16kHz PCM Stream) ──► [VadFilter]
-                                                           │
-                                                           ▼
-                                                [StreamingAsrProcessor]
-                                                           │
-                                                           ▼
-                                               [AndroidSpeechRecognizerEngine]
-                                                           │ (AsrResult)
-                                                           ▼
-                                              [MlKitTranslationEngine]
-                                                           │ (Bilingual SubtitleItem)
-                                                           ▼
-                                                  [SubtitlePill Overlay]
+[System Audio (YouTube, Safari, Media)]
+                 │
+                 ▼
+    [LiveSubBroadcast Extension]  (ReplayKit RPSampleBufferType.audioApp)
+                 │
+                 ▼ (TCP Loopback 127.0.0.1:19834)
+       [AudioSocketServer] (Main App Host)
+                 │ (Stereo to Mono PCM Downmix)
+                 ▼
+       [SpeechRecognizer] (Apple SFSpeechRecognizer)
+                 │ (Live Source Transcript)
+                 ▼
+      [TranslationManager] (Apple TranslationSession / Fast Engine)
+                 │ (Translated Text)
+                 ▼
+  [SubtitleOverlayView] ──► [Floating Picture-in-Picture HUD (PiP)]
 ```
 
 ---
