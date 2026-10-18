@@ -66,19 +66,32 @@ public struct SubtitleOverlayView: View {
                         }
                     }
 
-                    // Primary Translated Subtitle
-                    Text(primaryText)
-                        .font(.system(size: CGFloat(fontSize), weight: .semibold, design: .rounded))
-                        .foregroundColor(.white)
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.85)
-                        .multilineTextAlignment(.leading)
-                        .animation(.spring(response: 0.2, dampingFraction: 0.8), value: primaryText)
+                    // Primary Subtitle Area with Dwell Roll-Up
+                    VStack(alignment: .leading, spacing: 2) {
+                        // Previous stabilized line (held during dwell duration)
+                        if translationManager.isActiveTranslation && !translationManager.stableText.isEmpty {
+                            Text(translationManager.stableText)
+                                .font(.system(size: CGFloat(max(12, fontSize - 3)), weight: .medium, design: .rounded))
+                                .foregroundColor(.white.opacity(0.65))
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                                .transition(.opacity.combined(with: .move(edge: .top)))
+                        }
+
+                        // Current active subtitle
+                        Text(primaryText)
+                            .font(.system(size: CGFloat(fontSize), weight: .semibold, design: .rounded))
+                            .foregroundColor(.white)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.85)
+                            .multilineTextAlignment(.leading)
+                            .animation(.spring(response: 0.25, dampingFraction: 0.85), value: primaryText)
+                    }
 
                     // Secondary Original Text (Optional)
                     if showOriginalText {
                         Text(speechRecognizer.transcript)
-                            .font(.system(size: CGFloat(max(10, fontSize - 4)), weight: .medium, design: .rounded))
+                            .font(.system(size: CGFloat(max(10, fontSize - 5)), weight: .medium, design: .rounded))
                             .foregroundColor(.gray)
                             .lineLimit(1)
                             .truncationMode(.tail)

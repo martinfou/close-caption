@@ -191,16 +191,24 @@ public struct ContentView: View {
             : "Subtitles will appear here"
 
         return Section {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 6) {
+                if hasTranslation && !translationManager.stableText.isEmpty {
+                    Text(translationManager.stableText)
+                        .font(.system(size: CGFloat(max(13, fontSize - 4)), weight: .medium, design: .default))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+
                 Text(shown.isEmpty ? placeholder : shown)
                     .font(.system(size: CGFloat(fontSize), weight: .semibold, design: .default))
                     .foregroundStyle(shown.isEmpty ? .tertiary : .primary)
-                    .frame(maxWidth: .infinity, minHeight: 80, alignment: .topLeading)
+                    .frame(maxWidth: .infinity, minHeight: 65, alignment: .topLeading)
+
                 if hasTranslation, !transcript.isEmpty {
                     Text(transcript)
                         .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(3)
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(2)
                 }
             }
             .padding(.vertical, 4)
@@ -249,11 +257,28 @@ public struct ContentView: View {
     private var settingsSheet: some View {
         NavigationView {
             Form {
-                Section("Subtitles") {
-                    VStack(alignment: .leading) {
-                        Text("Text size: \(Int(fontSize)) pt")
+                Section("Subtitles Appearance") {
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Text("Text size")
+                            Spacer()
+                            Text("\(Int(fontSize)) pt").foregroundStyle(.secondary)
+                        }
                         Slider(value: $fontSize, in: 14...34, step: 1)
                     }
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Text("Reading dwell buffer")
+                            Spacer()
+                            Text(String(format: "%.1f s", translationManager.dwellSeconds)).foregroundStyle(.secondary)
+                        }
+                        Slider(value: $translationManager.dwellSeconds, in: 1.0...6.0, step: 0.5)
+                        Text("Holds the previous subtitle on screen so fast-spoken sentences don't vanish before you finish reading.")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+
                     Toggle("Show original in floating window", isOn: $translationManager.showOriginalInPiP)
                 }
 

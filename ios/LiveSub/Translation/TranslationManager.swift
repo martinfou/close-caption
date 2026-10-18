@@ -62,12 +62,19 @@ public final class TranslationManager: ObservableObject {
     @Published public private(set) var sourceLanguage: AppLanguage
     @Published public private(set) var targetLanguage: AppLanguage
 
-    // MARK: Output
+    // MARK: Output & Display Pacing (Dwell Buffer)
 
     @Published public var translatedText: String = ""
+    /// Stable completed/previous line that stays on screen during reading dwell window.
+    @Published public var stableText: String = ""
     @Published public var isTranslating: Bool = false
     /// Human readable engine state, e.g. "On-device" / "Online" / "Offline – showing original".
     @Published public var engineStatus: String = ""
+
+    /// Subtitle linger / dwell buffer time in seconds (Default 3.0s, configurable in Settings)
+    @Published public var dwellSeconds: Double {
+        didSet { UserDefaults.standard.set(dwellSeconds, forKey: "subtitleDwellSeconds") }
+    }
 
     public var sourceCode: String { sourceLanguage.code }
     public var targetCode: String { targetLanguage.code }
@@ -98,6 +105,8 @@ public final class TranslationManager: ObservableObject {
         self.targetLanguage = Self.supportedLanguages.first { $0.code == tgt } ?? Self.supportedLanguages[2]
         self.isTranslationEnabled = defaults.object(forKey: "isTranslationEnabled") as? Bool ?? true
         self.showOriginalInPiP = defaults.object(forKey: "showOriginalInPiP") as? Bool ?? true
+        let savedDwell = defaults.double(forKey: "subtitleDwellSeconds")
+        self.dwellSeconds = savedDwell > 0 ? savedDwell : 3.0
     }
 
     // MARK: Language selection
@@ -126,7 +135,34 @@ public final class TranslationManager: ObservableObject {
         lastRequested = ""
         pendingOnline = nil
         translatedText = ""
+        stableText = ""
         appleFailures = 0
+    }
+
+    /// Commit the current completed translated phrase to the stable upper line
+    /// with a dwell timer that cleans it up after `dwellSeconds`.
+    private func updateTranslationOutput(_ newText: String) {
+        let clean = newText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !clean.isEmpty else { return }
+
+        // If current text was substantial and newText represents a fresh clause,
+        // promote the previous text to stableText so it lingers on screen.
+        if !translatedText.isEmpty && clean != translatedText {
+            let isSignificantShift = clean.count < translatedText.count ||
+                !clean.lowercased().hasPrefix(translatedText.prefix(min(12, translatedText.count)).lowercased())
+            if isSignificantShift {
+                stableText = translatedText
+                let capturedGen = generation
+                let linger = dwellSeconds
+                Task { @MainActor [weak self] in
+                    try? await Task.sleep(nanoseconds: UInt64(linger * 1_000_000_000))
+                    guard let self = self, self.generation == capturedGen else { return }
+                    if self.stableText == newText { return }
+                    self.stableText = ""
+                }
+            }
+        }
+        self.translatedText = clean
     }
 
     // MARK: Translation entry point
@@ -173,7 +209,7 @@ public final class TranslationManager: ObservableObject {
             do {
                 let response = try await session.translate(text)
                 guard gen == generation else { continue }
-                translatedText = response.targetText
+                updateTranslationOutput(response.targetText)
                 engineStatus = "On-device"
                 isTranslating = false
                 appleFailures = 0
@@ -213,7 +249,7 @@ public final class TranslationManager: ObservableObject {
                 guard gen == self.generation else { continue }
 
                 if let result {
-                    self.translatedText = result
+                    self.updateTranslationOutput(result)
                     self.engineStatus = "Online"
                     self.isTranslating = false
                 } else {
