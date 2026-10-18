@@ -17,6 +17,7 @@ public struct ContentView: View {
     @State private var downloadTrigger = 0
     @State private var pickerTrigger = 0
     @State private var showSettings = false
+    @State private var downloadMessage: String?
 
     private var isLive: Bool { speechRecognizer.isConnectedToBroadcast }
 
@@ -30,6 +31,10 @@ public struct ContentView: View {
             }
             .listStyle(.insetGrouped)
             .background(hiddenHosts)
+            .downloadHost(trigger: downloadTrigger, message: $downloadMessage)
+            .alert(downloadMessage ?? "", isPresented: Binding(get: { downloadMessage != nil }, set: { if !$0 { downloadMessage = nil } })) {
+                Button("OK", role: .cancel) {}
+            }
             .navigationTitle("LiveSub")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
@@ -76,7 +81,6 @@ public struct ContentView: View {
                     source: translationManager.sourceLanguage.langCode,
                     target: translationManager.targetLanguage.langCode
                 )
-                DownloadHost(trigger: $downloadTrigger)
             }
             #endif
         }
@@ -291,32 +295,48 @@ private struct LiveTranslationHost: View {
 }
 
 @available(iOS 18.0, *)
-private struct DownloadHost: View {
-    @Binding var trigger: Int
-    @ObservedObject private var tm = TranslationManager.shared
+private struct DownloadModifier: ViewModifier {
+    let trigger: Int
+    @Binding var message: String?
     @State private var configuration: TranslationSession.Configuration?
 
-    var body: some View {
-        Color.clear
-            .frame(width: 1, height: 1)
+    func body(content: Content) -> some View {
+        content
             .translationTask(configuration) { session in
-                do { try await session.prepareTranslation() }
-                catch { print("[LiveSub] prepareTranslation error: \(error)") }
+                do {
+                    try await session.prepareTranslation()
+                    message = "Language pack is ready for offline use."
+                } catch {
+                    message = "Couldn't download the language pack: \(error.localizedDescription)"
+                }
             }
             .onChange(of: trigger) { _ in
+                let tm = TranslationManager.shared
                 if configuration == nil {
                     configuration = TranslationSession.Configuration(
                         source: Locale.Language(identifier: tm.sourceLanguage.langCode),
-                        target: Locale.Language(identifier: tm.targetLanguage.langCode)
-                    )
+                        target: Locale.Language(identifier: tm.targetLanguage.langCode))
                 } else {
-                    configuration = TranslationSession.Configuration(
-                        source: Locale.Language(identifier: tm.sourceLanguage.langCode),
-                        target: Locale.Language(identifier: tm.targetLanguage.langCode)
-                    )
+                    configuration?.source = Locale.Language(identifier: tm.sourceLanguage.langCode)
+                    configuration?.target = Locale.Language(identifier: tm.targetLanguage.langCode)
+                    configuration?.invalidate()
                 }
-                configuration?.invalidate()
             }
     }
 }
 #endif
+
+private extension View {
+    @ViewBuilder
+    func downloadHost(trigger: Int, message: Binding<String?>) -> some View {
+        #if canImport(Translation)
+        if #available(iOS 18.0, *) {
+            self.modifier(DownloadModifier(trigger: trigger, message: message))
+        } else {
+            self
+        }
+        #else
+        self
+        #endif
+    }
+}
