@@ -16,6 +16,7 @@
 		A76A3CD15223386BE8EB342D /* SpeechRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECEBD5BD0802978C7A483F8D /* SpeechRecognizer.swift */; };
 		B76C6A9993FFE705E1CCACAC /* AudioSocketClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02D07D091E790AFDAC76D06 /* AudioSocketClient.swift */; };
 		D9157DF1124CD79B8940FA7C /* SubtitleOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B87A4F651B5FEC98FD8B64 /* SubtitleOverlayView.swift */; };
+		DA44A58B27202A2CAE29F4F8 /* TranslationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDC3339B232FF7CE2BAD7314 /* TranslationManager.swift */; };
 		DD377AF69516F1E2D6FBBE9A /* AudioSocketServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D47E430350011D78F592E259 /* AudioSocketServer.swift */; };
 		E01133A61589CABF880CB517 /* AudioSocketConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65E2ACB880A8D25B5009E3BA /* AudioSocketConstants.swift */; };
 		E8B3AA3F5E082865B2459440 /* AudioSocketConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65E2ACB880A8D25B5009E3BA /* AudioSocketConstants.swift */; };
@@ -56,6 +57,7 @@
 		912735E3CBF2EBB153101AC7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		965829555AA8EF8B1B7A4A19 /* BroadcastPickerRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastPickerRepresentable.swift; sourceTree = "<group>"; };
 		9A18E0B3C3ED1B72466990EF /* LiveSubApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSubApp.swift; sourceTree = "<group>"; };
+		BDC3339B232FF7CE2BAD7314 /* TranslationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationManager.swift; sourceTree = "<group>"; };
 		C06733A66FF45BAEEA893EF6 /* SampleHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleHandler.swift; sourceTree = "<group>"; };
 		D02D07D091E790AFDAC76D06 /* AudioSocketClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSocketClient.swift; sourceTree = "<group>"; };
 		D0B87A4F651B5FEC98FD8B64 /* SubtitleOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtitleOverlayView.swift; sourceTree = "<group>"; };
@@ -77,6 +79,7 @@
 				041F75DCDEAF8211369F630A /* PiP */,
 				75F4FCDB58B9A7BEABE09BD5 /* Resources */,
 				3F0E3133A2FA800914ED82E6 /* Speech */,
+				655AC19847CBA98123A11D3F /* Translation */,
 				3ABB88E2CEBD4CB6A5719A6C /* Views */,
 			);
 			path = LiveSub;
@@ -131,6 +134,14 @@
 				9A18E0B3C3ED1B72466990EF /* LiveSubApp.swift */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		655AC19847CBA98123A11D3F /* Translation */ = {
+			isa = PBXGroup;
+			children = (
+				BDC3339B232FF7CE2BAD7314 /* TranslationManager.swift */,
+			);
+			path = Translation;
 			sourceTree = "<group>";
 		};
 		75F4FCDB58B9A7BEABE09BD5 /* Resources */ = {
@@ -274,6 +285,7 @@
 				3E893EC6C4F6F95642EE14E1 /* PiPManager.swift in Sources */,
 				A76A3CD15223386BE8EB342D /* SpeechRecognizer.swift in Sources */,
 				D9157DF1124CD79B8940FA7C /* SubtitleOverlayView.swift in Sources */,
+				DA44A58B27202A2CAE29F4F8 /* TranslationManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -14,7 +14,7 @@ public final class SpeechRecognizer: ObservableObject {
     @Published public var isRecognizing: Bool = false
     @Published public var isConnectedToBroadcast: Bool = false
     @Published public var audioPacketsReceived: Int = 0
-    @Published public var currentLocale: Locale = Locale(identifier: "en-US")
+    @Published public var currentLocale: Locale = Locale(identifier: "es-ES")
     @Published public var statusMessage: String = "Ready"
     @Published public var isMicMode: Bool = false
 
@@ -24,6 +24,7 @@ public final class SpeechRecognizer: ObservableObject {
     private var restartTimer: Timer?
     private var preferOfflineRecognition = true
     private var audioEngine: AVAudioEngine?
+    private var shouldKeepRecognizing = false
 
     public init() {
         updateLocale(currentLocale)
@@ -33,6 +34,9 @@ public final class SpeechRecognizer: ObservableObject {
     public func updateLocale(_ locale: Locale) {
         currentLocale = locale
         speechRecognizer = SFSpeechRecognizer(locale: locale)
+        if isRecognizing {
+            restartStream()
+        }
     }
 
     public func requestPermissions() {
@@ -40,23 +44,21 @@ public final class SpeechRecognizer: ObservableObject {
             DispatchQueue.main.async {
                 self?.isAuthorized = (status == .authorized)
                 if status == .authorized {
-                    self?.statusMessage = "Speech recognition authorized"
+                    self?.statusMessage = "Speech engine ready"
                 } else {
-                    self?.statusMessage = "Speech recognition permission: \(status)"
+                    self?.statusMessage = "Speech auth needed"
                 }
             }
         }
 
-        AVAudioSession.sharedInstance().requestRecordPermission { granted in
-            DispatchQueue.main.async {
-                print("[SpeechRecognizer] Record permission granted: \(granted)")
-            }
-        }
+        AVAudioSession.sharedInstance().requestRecordPermission { _ in }
     }
 
     public func startStreaming() {
         guard !isRecognizing else { return }
         stopStreaming()
+
+        shouldKeepRecognizing = true
 
         guard let recognizer = speechRecognizer, recognizer.isAvailable else {
             print("[SpeechRecognizer] Recognizer is NOT available for locale \(currentLocale)")
@@ -71,10 +73,10 @@ public final class SpeechRecognizer: ObservableObject {
 
         if preferOfflineRecognition && recognizer.supportsOnDeviceRecognition {
             request.requiresOnDeviceRecognition = true
-            statusMessage = "Using on-device speech engine"
+            statusMessage = "Using on-device engine (\(recognizer.locale.identifier))"
         } else {
             request.requiresOnDeviceRecognition = false
-            statusMessage = "Using Apple server speech engine"
+            statusMessage = "Using speech engine (\(recognizer.locale.identifier))"
         }
 
         self.recognitionRequest = request
@@ -90,18 +92,19 @@ public final class SpeechRecognizer: ObservableObject {
                 let text = result.bestTranscription.formattedString
                 self.transcript = text
                 self.updateRecentLines(text)
+                // Feed transcription directly to TranslationManager
+                TranslationManager.shared.translate(sourceText: text)
             }
 
             if let error = error {
                 print("[SpeechRecognizer] Recognition task error: \(error.localizedDescription)")
-                // If on-device failed, fallback to network recognition
                 if self.preferOfflineRecognition {
-                    print("[SpeechRecognizer] Falling back to cloud recognition")
                     self.preferOfflineRecognition = false
                 }
             }
 
-            if error != nil || (result?.isFinal ?? false) {
+            // Only restart if we still intend to be streaming
+            if (error != nil || (result?.isFinal ?? false)) && self.shouldKeepRecognizing {
                 self.restartStream()
             }
         }
@@ -130,7 +133,10 @@ public final class SpeechRecognizer: ObservableObject {
     }
 
     public func stopStreaming() {
+        shouldKeepRecognizing = false
         isRecognizing = false
+        restartTimer?.invalidate()
+        restartTimer = nil
         recognitionRequest?.endAudio()
         recognitionRequest = nil
         recognitionTask?.cancel()
@@ -138,11 +144,14 @@ public final class SpeechRecognizer: ObservableObject {
     }
 
     private func restartStream() {
-        guard isRecognizing || isConnectedToBroadcast || isMicMode else { return }
+        guard shouldKeepRecognizing else { return }
         stopStreaming()
+        shouldKeepRecognizing = true
         restartTimer?.invalidate()
         restartTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: false) { [weak self] _ in
-            self?.startStreaming()
+            Task { @MainActor in
+                self?.startStreaming()
+            }
         }
     }
 
@@ -156,6 +165,15 @@ public final class SpeechRecognizer: ObservableObject {
 
     public func startMicMode() {
         stopMicMode()
+
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playAndRecord, mode: .spokenAudio, options: [.mixWithOthers, .defaultToSpeaker, .allowBluetooth])
+            try session.setActive(true)
+        } catch {
+            print("[SpeechRecognizer] Failed to configure audio session for mic: \(error)")
+        }
+
         let engine = AVAudioEngine()
         let inputNode = engine.inputNode
         let recordingFormat = inputNode.outputFormat(forBus: 0)
@@ -184,18 +202,31 @@ public final class SpeechRecognizer: ObservableObject {
     }
 
     public func stopMicMode() {
-        audioEngine?.stop()
-        audioEngine?.inputNode.removeTap(onBus: 0)
-        audioEngine = nil
         isMicMode = false
-        if !isConnectedToBroadcast {
-            stopStreaming()
+
+        if let engine = audioEngine {
+            engine.inputNode.removeTap(onBus: 0)
+            engine.stop()
+            self.audioEngine = nil
         }
+
+        // Restore playback-only audio session to immediately dismiss iOS orange mic indicator
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
+            try session.setActive(true, options: .notifyOthersOnDeactivation)
+        } catch {
+            print("[SpeechRecognizer] Failed to restore playback session: \(error)")
+        }
+
+        stopStreaming()
+        self.statusMessage = "Microphone mode stopped (Ready)"
     }
 
     public func clear() {
         transcript = ""
         recentLines.removeAll()
         audioPacketsReceived = 0
+        TranslationManager.shared.translatedText = ""
     }
 }

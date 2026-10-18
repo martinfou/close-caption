@@ -4,19 +4,15 @@
 //
 import SwiftUI
 
+#if canImport(Translation)
+import Translation
+#endif
+
 public struct ContentView: View {
     @EnvironmentObject var speechRecognizer: SpeechRecognizer
     @ObservedObject var pipManager = PiPManager.shared
-    @State private var selectedLanguage = "en-US"
+    @ObservedObject var translationManager = TranslationManager.shared
     @AppStorage("fontSize") private var fontSize: Double = 16.0
-
-    private let supportedLocales = [
-        ("English", "en-US"),
-        ("Français", "fr-FR"),
-        ("Español", "es-ES"),
-        ("Deutsch", "de-DE"),
-        ("日本語", "ja-JP")
-    ]
 
     public var body: some View {
         NavigationView {
@@ -29,14 +25,17 @@ public struct ContentView: View {
                     .opacity(0.01)
 
                 ScrollView {
-                    VStack(spacing: 20) {
-                        // Header Status Card
+                    VStack(spacing: 18) {
+                        // Audio Broadcast & Mic Status Card
                         statusCard
 
-                        // Subtitle Live Box
+                        // Dedicated Language A ➔ Language B Translation Card
+                        translationControlCard
+
+                        // Subtitle Live Box (Shows Translated + Original)
                         captionPreviewBox
 
-                        // Action Controls
+                        // Action Controls (PiP & Mic)
                         controlsGrid
 
                         // Settings & Customization
@@ -50,9 +49,11 @@ public struct ContentView: View {
             }
             .navigationTitle("LiveSub")
             .navigationBarTitleDisplayMode(.inline)
+            .modifier(TranslationTaskModifier())
         }
     }
 
+    // MARK: - Status Card
     private var statusCard: some View {
         VStack(spacing: 12) {
             HStack(spacing: 16) {
@@ -67,7 +68,7 @@ public struct ContentView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(speechRecognizer.isConnectedToBroadcast ? "Broadcast Active" : (speechRecognizer.isMicMode ? "Microphone Mode" : "System Audio Capture"))
+                    Text(speechRecognizer.isConnectedToBroadcast ? "Broadcast Active" : (speechRecognizer.isMicMode ? "Microphone Mode" : "Audio Capture"))
                         .font(.headline)
                         .foregroundColor(.white)
 
@@ -120,27 +121,191 @@ public struct ContentView: View {
         )
     }
 
+    // MARK: - Translation Control Card (Language A ➔ Language B)
+    private var translationControlCard: some View {
+        VStack(spacing: 14) {
+            // Header with toggle
+            HStack {
+                Label("Live Translation", systemImage: "globe")
+                    .font(.subheadline.bold())
+                    .foregroundColor(.cyan)
+
+                Spacer()
+
+                Toggle("", isOn: $translationManager.isTranslationEnabled)
+                    .labelsHidden()
+                    .tint(.cyan)
+                    .onChange(of: translationManager.isTranslationEnabled) { _ in
+                        translationManager.translate(sourceText: speechRecognizer.transcript)
+                    }
+            }
+
+            // Language Selector Bar: [Source] ⇄ [Target]
+            HStack(spacing: 10) {
+                // Source Language Button
+                Menu {
+                    ForEach(TranslationManager.supportedLanguages) { lang in
+                        Button(action: {
+                            translationManager.setSource(lang)
+                            speechRecognizer.updateLocale(Locale(identifier: lang.code))
+                        }) {
+                            HStack {
+                                Text("\(lang.flag) \(lang.name)")
+                                if lang.code == translationManager.sourceLanguage.code {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                } label: {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("SPOKEN AUDIO")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundColor(.gray)
+                        HStack(spacing: 6) {
+                            Text(translationManager.sourceLanguage.flag)
+                                .font(.headline)
+                            Text(translationManager.sourceLanguage.name)
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundColor(.white)
+                                .lineLimit(1)
+                            Image(systemName: "chevron.down")
+                                .font(.caption2)
+                                .foregroundColor(.gray)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(Color.white.opacity(0.06))
+                    .cornerRadius(12)
+                }
+
+                // Swap Button
+                Button(action: {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        translationManager.swapLanguages()
+                        speechRecognizer.updateLocale(Locale(identifier: translationManager.sourceLanguage.code))
+                    }
+                }) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.white.opacity(0.1))
+                            .frame(width: 38, height: 38)
+                        Image(systemName: "arrow.left.arrow.right")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.cyan)
+                    }
+                }
+
+                // Target Language Button
+                Menu {
+                    ForEach(TranslationManager.supportedLanguages) { lang in
+                        Button(action: {
+                            translationManager.setTarget(lang)
+                        }) {
+                            HStack {
+                                Text("\(lang.flag) \(lang.name)")
+                                if lang.code == translationManager.targetLanguage.code {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                } label: {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("SUBTITLES")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundColor(.gray)
+                        HStack(spacing: 6) {
+                            Text(translationManager.targetLanguage.flag)
+                                .font(.headline)
+                            Text(translationManager.targetLanguage.name)
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundColor(.white)
+                                .lineLimit(1)
+                            Image(systemName: "chevron.down")
+                                .font(.caption2)
+                                .foregroundColor(.gray)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(Color.white.opacity(0.06))
+                    .cornerRadius(12)
+                }
+            }
+        }
+        .padding(18)
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(Color.white.opacity(0.05))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .stroke(Color.cyan.opacity(0.2), lineWidth: 1)
+                )
+        )
+    }
+
+    // MARK: - Caption Preview Box
     private var captionPreviewBox: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Label("Live Subtitles", systemImage: "text.bubble.fill")
-                    .font(.subheadline.bold())
-                    .foregroundColor(.gray)
+                Label(
+                    translationManager.isTranslationEnabled ? "Translated Subtitles" : "Live Captions",
+                    systemImage: "text.bubble.fill"
+                )
+                .font(.subheadline.bold())
+                .foregroundColor(translationManager.isTranslationEnabled ? .cyan : .gray)
+
+                if translationManager.isTranslating {
+                    ProgressView()
+                        .scaleEffect(0.7)
+                        .tint(.cyan)
+                }
+
                 Spacer()
+
                 Button(action: { speechRecognizer.clear() }) {
                     Image(systemName: "trash")
                         .foregroundColor(.gray)
                 }
             }
 
-            Text(speechRecognizer.transcript.isEmpty ? "Tap the blue button to begin broadcasting audio from YouTube, Netflix, TikTok or any app..." : speechRecognizer.transcript)
-                .font(.system(size: CGFloat(fontSize), weight: .medium, design: .rounded))
-                .foregroundColor(speechRecognizer.transcript.isEmpty ? .gray.opacity(0.7) : .white)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .frame(minHeight: 100)
-                .padding(14)
-                .background(Color.black.opacity(0.4))
-                .cornerRadius(14)
+            VStack(alignment: .leading, spacing: 8) {
+                // Primary Text: Translated Subtitle
+                let displayText = translationManager.isTranslationEnabled && !translationManager.translatedText.isEmpty
+                    ? translationManager.translatedText
+                    : speechRecognizer.transcript
+
+                Text(displayText.isEmpty ? "Play a video or tap 'Test via Microphone' to see live translated subtitles..." : displayText)
+                    .font(.system(size: CGFloat(fontSize), weight: .semibold, design: .rounded))
+                    .foregroundColor(displayText.isEmpty ? .gray.opacity(0.7) : .white)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                // Secondary Original Text
+                if translationManager.isTranslationEnabled &&
+                    !translationManager.translatedText.isEmpty &&
+                    !speechRecognizer.transcript.isEmpty &&
+                    translationManager.sourceLanguage.langCode != translationManager.targetLanguage.langCode {
+                    Divider().background(Color.white.opacity(0.1))
+                    HStack(spacing: 4) {
+                        Text("\(translationManager.sourceLanguage.flag) Original:")
+                            .font(.caption2.bold())
+                            .foregroundColor(.gray)
+                        Text(speechRecognizer.transcript)
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                            .lineLimit(2)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(minHeight: 90)
+            .padding(14)
+            .background(Color.black.opacity(0.4))
+            .cornerRadius(14)
         }
         .padding(18)
         .background(
@@ -153,6 +318,7 @@ public struct ContentView: View {
         )
     }
 
+    // MARK: - Controls Grid
     private var controlsGrid: some View {
         VStack(spacing: 12) {
             // Floating Subtitles PiP button
@@ -180,7 +346,7 @@ public struct ContentView: View {
             // Quick Microphone Mode Toggle
             Button(action: { speechRecognizer.toggleMicMode() }) {
                 HStack {
-                    Image(systemName: speechRecognizer.isMicMode ? "mic.slash.fill" : "mic.fill")
+                    Image(systemName: speechRecognizer.isMicMode ? "stop.fill" : "mic.fill")
                     Text(speechRecognizer.isMicMode ? "Stop Microphone Mode" : "Test via Microphone (Speakers)")
                 }
                 .font(.subheadline.weight(.semibold))
@@ -199,27 +365,19 @@ public struct ContentView: View {
         }
     }
 
+    // MARK: - Settings Section
     private var settingsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Settings")
                 .font(.headline)
                 .foregroundColor(.white)
 
-            // Language Selector
-            HStack {
-                Text("Transcription Language")
+            // Show Original Subtitle in PiP
+            Toggle(isOn: $translationManager.showOriginalInPiP) {
+                Text("Show Original Text in PiP")
                     .foregroundColor(.white)
-                Spacer()
-                Picker("Language", selection: $selectedLanguage) {
-                    ForEach(supportedLocales, id: \.1) { name, code in
-                        Text(name).tag(code)
-                    }
-                }
-                .pickerStyle(.menu)
-                .onChange(of: selectedLanguage) { newCode in
-                    speechRecognizer.updateLocale(Locale(identifier: newCode))
-                }
             }
+            .tint(.cyan)
 
             Divider().background(Color.white.opacity(0.1))
 
@@ -233,7 +391,7 @@ public struct ContentView: View {
                         .foregroundColor(.gray)
                 }
                 Slider(value: $fontSize, in: 12...24, step: 1)
-                    .tint(.blue)
+                    .tint(.cyan)
             }
         }
         .padding(18)
@@ -245,5 +403,31 @@ public struct ContentView: View {
                         .stroke(Color.white.opacity(0.1), lineWidth: 1)
                 )
         )
+    }
+}
+
+// MARK: - Translation ViewModifier
+private struct TranslationTaskModifier: ViewModifier {
+    @ObservedObject var translationManager = TranslationManager.shared
+    @EnvironmentObject var speechRecognizer: SpeechRecognizer
+
+    func body(content: Content) -> some View {
+        #if canImport(Translation)
+        if #available(iOS 18.0, *) {
+            content.translationTask(
+                source: Locale.Language(identifier: translationManager.sourceLanguage.langCode),
+                target: Locale.Language(identifier: translationManager.targetLanguage.langCode)
+            ) { session in
+                translationManager.activeSession = session
+                if !speechRecognizer.transcript.isEmpty {
+                    translationManager.translate(sourceText: speechRecognizer.transcript)
+                }
+            }
+        } else {
+            content
+        }
+        #else
+        content
+        #endif
     }
 }
