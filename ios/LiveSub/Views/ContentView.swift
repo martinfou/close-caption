@@ -192,13 +192,6 @@ public struct ContentView: View {
 
         return Section {
             VStack(alignment: .leading, spacing: 6) {
-                if hasTranslation && !translationManager.stableText.isEmpty {
-                    Text(translationManager.stableText)
-                        .font(.system(size: CGFloat(max(13, fontSize - 4)), weight: .medium, design: .default))
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
-
                 Text(shown.isEmpty ? placeholder : shown)
                     .font(.system(size: CGFloat(fontSize), weight: .semibold, design: .default))
                     .foregroundStyle(shown.isEmpty ? .tertiary : .primary)

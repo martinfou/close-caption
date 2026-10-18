@@ -65,8 +65,6 @@ public final class TranslationManager: ObservableObject {
     // MARK: Output & Display Pacing (Dwell Buffer)
 
     @Published public var translatedText: String = ""
-    /// Stable completed/previous line that stays on screen during reading dwell window.
-    @Published public var stableText: String = ""
     @Published public var isTranslating: Bool = false
     /// Human readable engine state, e.g. "On-device" / "Online" / "Offline – showing original".
     @Published public var engineStatus: String = ""
@@ -132,37 +130,34 @@ public final class TranslationManager: ObservableObject {
     /// Language changed: discard stale work and the old translation.
     private func resetPending() {
         generation += 1
+        clearDwellTask?.cancel()
+        clearDwellTask = nil
         lastRequested = ""
         pendingOnline = nil
         translatedText = ""
-        stableText = ""
         appleFailures = 0
     }
 
-    /// Commit the current completed translated phrase to the stable upper line
-    /// with a dwell timer that cleans it up after `dwellSeconds`.
+    private var clearDwellTask: Task<Void, Never>?
+
+    /// Updates the single translated subtitle text and resets the dwell pause timer
     private func updateTranslationOutput(_ newText: String) {
         let clean = newText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !clean.isEmpty else { return }
 
-        // If current text was substantial and newText represents a fresh clause,
-        // promote the previous text to stableText so it lingers on screen.
-        if !translatedText.isEmpty && clean != translatedText {
-            let isSignificantShift = clean.count < translatedText.count ||
-                !clean.lowercased().hasPrefix(translatedText.prefix(min(12, translatedText.count)).lowercased())
-            if isSignificantShift {
-                stableText = translatedText
-                let capturedGen = generation
-                let linger = dwellSeconds
-                Task { @MainActor [weak self] in
-                    try? await Task.sleep(nanoseconds: UInt64(linger * 1_000_000_000))
-                    guard let self = self, self.generation == capturedGen else { return }
-                    if self.stableText == newText { return }
-                    self.stableText = ""
-                }
+        clearDwellTask?.cancel()
+        self.translatedText = clean
+
+        // After speech stops, hold this subtitle for `dwellSeconds` before clearing it
+        let linger = dwellSeconds
+        let capturedGen = generation
+        clearDwellTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: UInt64(linger * 1_000_000_000))
+            guard let self = self, self.generation == capturedGen else { return }
+            withAnimation(.easeOut(duration: 0.4)) {
+                self.translatedText = ""
             }
         }
-        self.translatedText = clean
     }
 
     // MARK: Translation entry point
