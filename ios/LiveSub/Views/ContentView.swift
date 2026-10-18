@@ -13,6 +13,7 @@ public struct ContentView: View {
     @ObservedObject var pipManager = PiPManager.shared
     @ObservedObject var translationManager = TranslationManager.shared
     @AppStorage("fontSize") private var fontSize: Double = 16.0
+    @State private var downloadTrigger: Int = 0
 
     public var body: some View {
         NavigationView {
@@ -23,6 +24,12 @@ public struct ContentView: View {
                 PiPSourceViewRepresentable(view: pipManager.sourceView)
                     .frame(width: 1, height: 1)
                     .opacity(0.01)
+
+                #if canImport(Translation)
+                if #available(iOS 18.0, *) {
+                    TranslationTaskHost(trigger: $downloadTrigger)
+                }
+                #endif
 
                 ScrollView {
                     VStack(spacing: 18) {
@@ -49,7 +56,6 @@ public struct ContentView: View {
             }
             .navigationTitle("LiveSub")
             .navigationBarTitleDisplayMode(.inline)
-            .modifier(TranslationTaskModifier())
             .onChange(of: speechRecognizer.transcript) { newText in
                 translationManager.translate(sourceText: newText)
             }
@@ -60,6 +66,10 @@ public struct ContentView: View {
                 translationManager.translate(sourceText: speechRecognizer.transcript)
             }
         }
+    }
+
+    private func promptDownloadSheet() {
+        downloadTrigger += 1
     }
 
     // MARK: - Status Card
@@ -248,6 +258,41 @@ public struct ContentView: View {
                     .cornerRadius(12)
                 }
             }
+
+            Divider().background(Color.white.opacity(0.08))
+
+            // Dedicated Offline Download Action Row
+            HStack(spacing: 12) {
+                Button(action: { promptDownloadSheet() }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "arrow.down.circle.fill")
+                            .font(.system(size: 14))
+                            .foregroundColor(.cyan)
+                        Text("Download Offline Pack (\(translationManager.sourceLanguage.flag) ➔ \(translationManager.targetLanguage.flag))")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.white)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color.cyan.opacity(0.18))
+                    .cornerRadius(10)
+                }
+
+                Spacer()
+
+                Button(action: {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "gear")
+                        Text("Settings")
+                    }
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.gray)
+                }
+            }
         }
         .padding(18)
         .background(
@@ -419,28 +464,36 @@ public struct ContentView: View {
     }
 }
 
-// MARK: - Translation ViewModifier
-private struct TranslationTaskModifier: ViewModifier {
+#if canImport(Translation)
+@available(iOS 18.0, *)
+private struct TranslationTaskHost: View {
+    @Binding var trigger: Int
     @ObservedObject var translationManager = TranslationManager.shared
     @EnvironmentObject var speechRecognizer: SpeechRecognizer
+    @State private var configuration: TranslationSession.Configuration?
 
-    func body(content: Content) -> some View {
-        #if canImport(Translation)
-        if #available(iOS 18.0, *) {
-            content.translationTask(
-                source: Locale.Language(identifier: translationManager.sourceLanguage.langCode),
-                target: Locale.Language(identifier: translationManager.targetLanguage.langCode)
-            ) { session in
+    var body: some View {
+        Color.clear
+            .frame(width: 0, height: 0)
+            .translationTask(configuration) { session in
                 translationManager.activeSession = session
+                do {
+                    // Triggers the native system sheet to download the language model
+                    try await session.prepareTranslation()
+                } catch {
+                    print("[LiveSub] prepareTranslation error: \(error)")
+                }
                 if !speechRecognizer.transcript.isEmpty {
                     translationManager.translate(sourceText: speechRecognizer.transcript)
                 }
             }
-        } else {
-            content
-        }
-        #else
-        content
-        #endif
+            .onChange(of: trigger) { _ in
+                configuration = TranslationSession.Configuration(
+                    source: Locale.Language(identifier: translationManager.sourceLanguage.langCode),
+                    target: Locale.Language(identifier: translationManager.targetLanguage.langCode)
+                )
+                configuration?.invalidate()
+            }
     }
 }
+#endif
