@@ -213,13 +213,7 @@ public final class SpeechRecognizer: ObservableObject {
             self.audioEngine = nil
         }
 
-        do {
-            let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
-            try session.setActive(true, options: .notifyOthersOnDeactivation)
-        } catch {
-            print("[SpeechRecognizer] Failed to restore playback session: \(error)")
-        }
+        BackgroundKeepAlive.shared.ensureRunning()
 
         stopStreaming()
         self.statusMessage = "Microphone stopped (Ready)"

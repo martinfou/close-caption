@@ -43,7 +43,9 @@ public final class SampleHandler: RPBroadcastSampleHandler {
                 isConnected = client.connect()
             }
             if isConnected {
-                client.send(sampleBuffer: sampleBuffer)
+                if !client.send(sampleBuffer: sampleBuffer) {
+                    isConnected = false
+                }
             }
         case .audioMic:
             // Optionally capture ambient microphone if the user toggled it

@@ -18,6 +18,7 @@
 		D9157DF1124CD79B8940FA7C /* SubtitleOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0B87A4F651B5FEC98FD8B64 /* SubtitleOverlayView.swift */; };
 		DA44A58B27202A2CAE29F4F8 /* TranslationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDC3339B232FF7CE2BAD7314 /* TranslationManager.swift */; };
 		DD377AF69516F1E2D6FBBE9A /* AudioSocketServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D47E430350011D78F592E259 /* AudioSocketServer.swift */; };
+		DFD60B6D447E6919BFE61DB3 /* BackgroundKeepAlive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FEE3EF586A229ADD8005052 /* BackgroundKeepAlive.swift */; };
 		E01133A61589CABF880CB517 /* AudioSocketConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65E2ACB880A8D25B5009E3BA /* AudioSocketConstants.swift */; };
 		E8B3AA3F5E082865B2459440 /* AudioSocketConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65E2ACB880A8D25B5009E3BA /* AudioSocketConstants.swift */; };
 		EF72C4C3907C2BD8A27A7320 /* LiveSubBroadcast.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5E74247DB482B296842C87E0 /* LiveSubBroadcast.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -54,6 +55,7 @@
 		5E74247DB482B296842C87E0 /* LiveSubBroadcast.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = LiveSubBroadcast.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		65E2ACB880A8D25B5009E3BA /* AudioSocketConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSocketConstants.swift; sourceTree = "<group>"; };
 		73CE21AE43AB6E7F30893E0B /* LiveSubBroadcast.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LiveSubBroadcast.entitlements; sourceTree = "<group>"; };
+		8FEE3EF586A229ADD8005052 /* BackgroundKeepAlive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundKeepAlive.swift; sourceTree = "<group>"; };
 		912735E3CBF2EBB153101AC7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		965829555AA8EF8B1B7A4A19 /* BroadcastPickerRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastPickerRepresentable.swift; sourceTree = "<group>"; };
 		9A18E0B3C3ED1B72466990EF /* LiveSubApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSubApp.swift; sourceTree = "<group>"; };
@@ -131,6 +133,7 @@
 		4D8A981C86792E15238E5B99 /* App */ = {
 			isa = PBXGroup;
 			children = (
+				8FEE3EF586A229ADD8005052 /* BackgroundKeepAlive.swift */,
 				9A18E0B3C3ED1B72466990EF /* LiveSubApp.swift */,
 			);
 			path = App;
@@ -279,6 +282,7 @@
 				9211DB98E7556909D0548C42 /* AudioPCMUtils.swift in Sources */,
 				E8B3AA3F5E082865B2459440 /* AudioSocketConstants.swift in Sources */,
 				DD377AF69516F1E2D6FBBE9A /* AudioSocketServer.swift in Sources */,
+				DFD60B6D447E6919BFE61DB3 /* BackgroundKeepAlive.swift in Sources */,
 				104AD2262A5C7DEA4F0A6F90 /* BroadcastPickerRepresentable.swift in Sources */,
 				5B359B93DC718C4C1DFEF720 /* ContentView.swift in Sources */,
 				40A0442EE893C22FE4CF1792 /* LiveSubApp.swift in Sources */,

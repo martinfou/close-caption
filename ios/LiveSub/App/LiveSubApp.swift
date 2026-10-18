@@ -9,11 +9,11 @@ import CoreMedia
 @main
 struct LiveSubApp: App {
     @StateObject private var speechRecognizer = SpeechRecognizer()
-    @State private var coordinator: SocketCoordinator?
-    private let socketServer = AudioSocketServer()
 
     init() {
-        configureAudioSession()
+        // Keeps the app (and the broadcast socket server) running while the user
+        // is in YouTube/Safari/etc. Mixes with other audio, so nothing is interrupted.
+        BackgroundKeepAlive.shared.start()
     }
 
     var body: some Scene {
@@ -21,30 +21,27 @@ struct LiveSubApp: App {
             ContentView()
                 .environmentObject(speechRecognizer)
                 .onAppear {
-                    setupIPC()
+                    IPCController.shared.startIfNeeded(speechRecognizer: speechRecognizer)
                     PiPManager.shared.configure(with: speechRecognizer)
                 }
         }
     }
+}
 
-    private func configureAudioSession() {
-        do {
-            let session = AVAudioSession.sharedInstance()
-            // .mixWithOthers ensures LiveSub does NOT pause Spotify/YouTube playback!
-            try session.setCategory(
-                .playAndRecord,
-                mode: .spokenAudio,
-                options: [.mixWithOthers, .defaultToSpeaker, .allowBluetooth]
-            )
-            try session.setActive(true, options: .notifyOthersOnDeactivation)
-        } catch {
-            print("Failed to configure background playback audio session: \(error)")
-        }
-    }
+/// Owns the loopback socket server for the whole process lifetime (started exactly once).
+final class IPCController {
+    static let shared = IPCController()
 
-    private func setupIPC() {
+    private let socketServer = AudioSocketServer()
+    private var coordinator: SocketCoordinator?
+    private var started = false
+
+    @MainActor
+    func startIfNeeded(speechRecognizer: SpeechRecognizer) {
+        guard !started else { return }
+        started = true
         let coord = SocketCoordinator(speechRecognizer: speechRecognizer)
-        self.coordinator = coord
+        coordinator = coord
         socketServer.delegate = coord
         socketServer.start()
         print("[LiveSubApp] IPC TCP SocketServer started on localhost.")
@@ -67,6 +64,7 @@ final class SocketCoordinator: AudioSocketServerDelegate {
     func audioSocketServerDidConnectClient(_ server: AudioSocketServer) {
         Task { @MainActor in
             speechRecognizer.isConnectedToBroadcast = true
+            speechRecognizer.statusMessage = "Broadcast connected"
             speechRecognizer.startStreaming()
         }
     }
@@ -74,7 +72,10 @@ final class SocketCoordinator: AudioSocketServerDelegate {
     func audioSocketServerDidDisconnectClient(_ server: AudioSocketServer) {
         Task { @MainActor in
             speechRecognizer.isConnectedToBroadcast = false
-            speechRecognizer.stopStreaming()
+            speechRecognizer.statusMessage = "Broadcast ended"
+            if !speechRecognizer.isMicMode {
+                speechRecognizer.stopStreaming()
+            }
         }
     }
 }

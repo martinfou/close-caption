@@ -4,6 +4,7 @@
 //
 import Foundation
 import CoreMedia
+import AVFoundation
 
 public final class AudioSocketClient {
     private var socketFD: Int32 = -1
@@ -17,11 +18,9 @@ public final class AudioSocketClient {
         guard socketFD >= 0 else { return false }
 
         var opt: Int32 = 1
-        #if canImport(Darwin)
         setsockopt(socketFD, SOL_SOCKET, SO_NOSIGPIPE, &opt, socklen_t(MemoryLayout<Int32>.size))
-        #endif
 
-        var timeout = timeval(tv_sec: 0, tv_usec: 300_000)
+        var timeout = timeval(tv_sec: 1, tv_usec: 0)
         setsockopt(socketFD, SOL_SOCKET, SO_SNDTIMEO, &timeout, socklen_t(MemoryLayout<timeval>.size))
 
         var addr = sockaddr_in()
@@ -44,48 +43,89 @@ public final class AudioSocketClient {
         return true
     }
 
-    public func send(sampleBuffer: CMSampleBuffer) {
-        guard socketFD >= 0 else { return }
+    /// Returns false if the connection is broken and the caller should reconnect.
+    @discardableResult
+    public func send(sampleBuffer: CMSampleBuffer) -> Bool {
+        guard socketFD >= 0 else { return false }
 
-        // Extract AudioStreamBasicDescription from the sample buffer
         guard let formatDesc = CMSampleBufferGetFormatDescription(sampleBuffer),
-              let asbd = CMAudioFormatDescriptionGetStreamBasicDescription(formatDesc)?.pointee else {
-            return
+              let asbdPtr = CMAudioFormatDescriptionGetStreamBasicDescription(formatDesc) else {
+            return true
+        }
+        var srcASBD = asbdPtr.pointee
+        guard let srcFormat = AVAudioFormat(streamDescription: &srcASBD) else { return true }
+
+        let frames = AVAudioFrameCount(CMSampleBufferGetNumSamples(sampleBuffer))
+        guard frames > 0,
+              let pcm = AVAudioPCMBuffer(pcmFormat: srcFormat, frameCapacity: frames) else { return true }
+        pcm.frameLength = frames
+
+        let status = CMSampleBufferCopyPCMDataIntoAudioBufferList(
+            sampleBuffer, at: 0, frameCount: Int32(frames), into: pcm.mutableAudioBufferList
+        )
+        guard status == noErr else { return true }
+
+        // Downmix whatever ReplayKit gave us (int16/float32, interleaved or not) to mono Int16.
+        let channels = Int(srcFormat.channelCount)
+        let stride = pcm.stride
+        var mono = [Int16](repeating: 0, count: Int(frames))
+
+        if let f = pcm.floatChannelData {
+            for i in 0..<Int(frames) {
+                var sum: Float = 0
+                for c in 0..<channels { sum += f[c][i * stride] }
+                let v = max(-1.0, min(1.0, sum / Float(channels)))
+                mono[i] = Int16(v * 32767.0)
+            }
+        } else if let s = pcm.int16ChannelData {
+            for i in 0..<Int(frames) {
+                var sum: Int32 = 0
+                for c in 0..<channels { sum += Int32(s[c][i * stride]) }
+                mono[i] = Int16(clamping: sum / Int32(channels))
+            }
+        } else {
+            return true
         }
 
-        guard let blockBuffer = CMSampleBufferGetDataBuffer(sampleBuffer) else { return }
-
-        var lengthAtOffsetOut: Int = 0
-        var totalLengthOut: Int = 0
-        var dataPointerOut: UnsafeMutablePointer<Int8>?
-
-        let status = CMBlockBufferGetDataPointer(
-            blockBuffer,
-            atOffset: 0,
-            lengthAtOffsetOut: &lengthAtOffsetOut,
-            totalLengthOut: &totalLengthOut,
-            dataPointerOut: &dataPointerOut
+        var outASBD = AudioStreamBasicDescription(
+            mSampleRate: srcASBD.mSampleRate,
+            mFormatID: kAudioFormatLinearPCM,
+            mFormatFlags: kLinearPCMFormatFlagIsSignedInteger | kLinearPCMFormatFlagIsPacked,
+            mBytesPerPacket: 2,
+            mFramesPerPacket: 1,
+            mBytesPerFrame: 2,
+            mChannelsPerFrame: 1,
+            mBitsPerChannel: 16,
+            mReserved: 0
         )
 
-        guard status == kCMBlockBufferNoErr, let data = dataPointerOut, totalLengthOut > 0 else { return }
-
         let asbdSize = MemoryLayout<AudioStreamBasicDescription>.size
-        let totalPayloadSize = asbdSize + totalLengthOut
+        let audioBytes = mono.count * MemoryLayout<Int16>.size
 
-        // 4-byte header length
-        var payloadLengthBE = UInt32(totalPayloadSize).bigEndian
+        var packet = Data()
+        var lengthBE = UInt32(asbdSize + audioBytes).bigEndian
+        packet.append(Data(bytes: &lengthBE, count: 4))
+        packet.append(Data(bytes: &outASBD, count: asbdSize))
+        mono.withUnsafeBytes { packet.append(contentsOf: $0) }
 
-        // Prepare ASBD bytes
-        var asbdCopy = asbd
+        return sendAll(packet)
+    }
 
-        // Send length header, ASBD, and PCM payload
-        withUnsafePointer(to: &payloadLengthBE) { lenPtr in
-            _ = Darwin.send(socketFD, lenPtr, 4, 0)
+    private func sendAll(_ data: Data) -> Bool {
+        var offset = 0
+        let total = data.count
+        return data.withUnsafeBytes { (raw: UnsafeRawBufferPointer) -> Bool in
+            guard let base = raw.baseAddress else { return false }
+            while offset < total {
+                let n = Darwin.send(socketFD, base + offset, total - offset, 0)
+                if n <= 0 {
+                    disconnect()
+                    return false
+                }
+                offset += n
+            }
+            return true
         }
-        withUnsafePointer(to: &asbdCopy) { asbdPtr in
-            _ = Darwin.send(socketFD, asbdPtr, asbdSize, 0)
-        }
-        _ = Darwin.send(socketFD, data, totalLengthOut, 0)
     }
 
     public func disconnect() {
