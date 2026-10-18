@@ -111,4 +111,59 @@ document.addEventListener("DOMContentLoaded", () => {
       }, 700);
     });
   });
+
+  // 4. Image Lightbox Modal Controller (Click to View Larger)
+  const lightbox = document.getElementById("image-lightbox");
+  const lightboxImg = document.getElementById("lightbox-img");
+  const lightboxCaption = document.getElementById("lightbox-caption");
+  const lightboxCloseBtn = document.getElementById("lightbox-close-btn");
+  const lightboxBackdrop = document.querySelector(".lightbox-backdrop");
+  const showcaseCards = document.querySelectorAll(".showcase-card");
+
+  function openLightbox(src, caption) {
+    if (!lightbox || !lightboxImg) return;
+    lightboxImg.src = src;
+    if (lightboxCaption) {
+      lightboxCaption.textContent = caption || "";
+    }
+    lightbox.classList.add("active");
+    lightbox.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeLightbox() {
+    if (!lightbox) return;
+    lightbox.classList.remove("active");
+    lightbox.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+    setTimeout(() => {
+      if (!lightbox.classList.contains("active") && lightboxImg) {
+        lightboxImg.src = "";
+      }
+    }, 280);
+  }
+
+  showcaseCards.forEach(card => {
+    card.addEventListener("click", () => {
+      const fullSrc = card.getAttribute("data-full-src") || card.querySelector("img")?.src;
+      const caption = card.getAttribute("data-caption") || "";
+      if (fullSrc) {
+        openLightbox(fullSrc, caption);
+      }
+    });
+  });
+
+  if (lightboxCloseBtn) {
+    lightboxCloseBtn.addEventListener("click", closeLightbox);
+  }
+
+  if (lightboxBackdrop) {
+    lightboxBackdrop.addEventListener("click", closeLightbox);
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && lightbox && lightbox.classList.contains("active")) {
+      closeLightbox();
+    }
+  });
 });

@@ -326,9 +326,9 @@ h1, h2, h3, h4 {
 
 /* Hero Visual Showcase */
 .showcase-container {
-  margin-top: 60px;
+  margin-top: 36px;
   position: relative;
-  max-width: 1100px;
+  max-width: 780px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -336,40 +336,42 @@ h1, h2, h3, h4 {
 .showcase-grid-dual {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  gap: 16px;
   text-align: left;
 }
 
-@media (max-width: 860px) {
+@media (max-width: 720px) {
   .showcase-grid-dual {
     grid-template-columns: 1fr;
   }
 }
 
 .showcase-card {
-  background: rgba(18, 20, 29, 0.7);
+  background: rgba(18, 20, 29, 0.75);
   border: 1px solid var(--card-border);
-  border-radius: 24px;
+  border-radius: 18px;
   overflow: hidden;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  transition: transform 0.3s ease, border-color 0.3s ease;
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  cursor: pointer;
 }
 
 .showcase-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(255, 255, 255, 0.16);
+  transform: translateY(-3px);
+  border-color: rgba(99, 102, 241, 0.4);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.7), 0 0 24px rgba(99, 102, 241, 0.15);
 }
 
 .showcase-card-header {
-  padding: 14px 20px;
+  padding: 10px 16px;
   background: rgba(255, 255, 255, 0.03);
   border-bottom: 1px solid var(--card-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   font-weight: 600;
   color: var(--text-secondary);
 }
@@ -377,10 +379,10 @@ h1, h2, h3, h4 {
 .platform-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
+  gap: 5px;
+  padding: 3px 10px;
   border-radius: 999px;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
 }
 
@@ -396,15 +398,6 @@ h1, h2, h3, h4 {
   border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
-.showcase-frame {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
-  border: 1px solid var(--card-border);
-  border-radius: 28px;
-  padding: 16px;
-  box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.8), 0 0 50px rgba(99, 102, 241, 0.15);
-  backdrop-filter: blur(20px);
-}
-
 .showcase-image-wrapper {
   position: relative;
   overflow: hidden;
@@ -413,9 +406,44 @@ h1, h2, h3, h4 {
 
 .showcase-image-wrapper img {
   width: 100%;
-  height: 280px;
+  height: 185px;
   object-fit: cover;
   display: block;
+  transition: transform 0.35s ease, filter 0.35s ease;
+}
+
+.showcase-card:hover .showcase-image-wrapper img {
+  transform: scale(1.03);
+  filter: brightness(1.05);
+}
+
+/* Expand hint badge */
+.expand-hint {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(10, 14, 26, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e2e8f0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  pointer-events: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.showcase-card:hover .expand-hint {
+  background: rgba(99, 102, 241, 0.85);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  transform: scale(1.04);
 }
 
 .download-actions {
@@ -430,20 +458,20 @@ h1, h2, h3, h4 {
 /* Floating Overlay Simulation Badge */
 .demo-overlay-pill {
   position: absolute;
-  top: 24px;
-  right: 24px;
-  background: rgba(15, 23, 42, 0.85);
+  top: 10px;
+  right: 10px;
+  background: rgba(15, 23, 42, 0.9);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 16px;
-  padding: 14px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+  padding: 8px 12px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
   animation: float 4s ease-in-out infinite;
-  max-width: 360px;
+  max-width: 230px;
   text-align: left;
 }
 
@@ -749,4 +777,101 @@ h1, h2, h3, h4 {
     margin: 16px auto 0;
     max-width: 90%;
   }
+}
+
+/* ==========================================================================
+   Image Lightbox Modal (Click to View Larger)
+   ========================================================================== */
+.lightbox-modal {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 24px;
+}
+
+.lightbox-modal.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.lightbox-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 8, 14, 0.88);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  cursor: pointer;
+}
+
+.lightbox-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: scale(0.92) translateY(10px);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 100000;
+}
+
+.lightbox-modal.active .lightbox-content {
+  transform: scale(1) translateY(0);
+}
+
+.lightbox-content img {
+  max-width: 88vw;
+  max-height: 75vh;
+  object-fit: contain;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 50px rgba(99, 102, 241, 0.25);
+  background: #000;
+}
+
+.lightbox-caption {
+  margin-top: 14px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  padding: 6px 18px;
+  border-radius: 999px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  text-align: center;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: -14px;
+  right: -14px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(30, 33, 48, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+  z-index: 100001;
+}
+
+.lightbox-close:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+  transform: scale(1.12);
 }

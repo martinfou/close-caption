@@ -101,13 +101,13 @@
       <div class="showcase-container">
         <div class="showcase-grid-dual">
           <!-- Card 1: iOS / iPadOS -->
-          <div class="showcase-card">
+          <div class="showcase-card" data-full-src="images/ios_livesub_ipad.png" data-caption="Apple iPadOS — LiveSub Picture-in-Picture Subtitle HUD">
             <div class="showcase-card-header">
               <span>Apple iPadOS & iOS</span>
               <span class="platform-pill apple">Picture-in-Picture HUD</span>
             </div>
             <div class="showcase-image-wrapper">
-              <img src="images/ios_livesub_ipad.png" alt="LiveSub floating Picture-in-Picture HUD on iPad translating YouTube" />
+              <img src="images/ios_livesub_ipad.png" alt="LiveSub floating Picture-in-Picture HUD on iPad translating YouTube" loading="lazy" />
               <!-- Live Simulated Overlay Badge -->
               <div class="demo-overlay-pill">
                 <div class="demo-lang-tags">
@@ -119,17 +119,25 @@
                   “I won’t give up, that’s my ninja way!”
                 </div>
               </div>
+              <div class="expand-hint">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+                <span>Click to view larger</span>
+              </div>
             </div>
           </div>
 
           <!-- Card 2: Android -->
-          <div class="showcase-card">
+          <div class="showcase-card" data-full-src="images/overlay_in_action.png" data-caption="Android — Floating Subtitle Pill Overlay in Action">
             <div class="showcase-card-header">
               <span>Android Phones & Tablets</span>
               <span class="platform-pill android">Floating Pill Overlay</span>
             </div>
             <div class="showcase-image-wrapper">
-              <img src="images/overlay_in_action.png" alt="LiveSub floating system overlay on Android translating video" />
+              <img src="images/overlay_in_action.png" alt="LiveSub floating system overlay on Android translating video" loading="lazy" />
+              <div class="expand-hint">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+                <span>Click to view larger</span>
+              </div>
             </div>
           </div>
         </div>
@@ -428,6 +436,18 @@
       </p>
     </div>
   </footer>
+
+  <!-- Image Lightbox Modal -->
+  <div id="image-lightbox" class="lightbox-modal" aria-hidden="true" role="dialog">
+    <div class="lightbox-backdrop"></div>
+    <div class="lightbox-content">
+      <button class="lightbox-close" id="lightbox-close-btn" aria-label="Close modal">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+      <img id="lightbox-img" src="" alt="Expanded screenshot" />
+      <div id="lightbox-caption" class="lightbox-caption"></div>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>
